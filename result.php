@@ -347,6 +347,7 @@ $date = $_POST['date'];
                             <td>Carriage PCB</td>
                             <td><?=$pcb_part_number?></td>
                             <td><?=$pcb_serial_number?></td>
+                            <td>zdsd</td>
                         </tr>
                     </table>
                 </div>
