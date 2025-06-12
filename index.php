@@ -41,9 +41,9 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Report System</title>
     <!-- 添加Select2的CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="assets/css/select2.min.css" rel="stylesheet" />
     <!-- 添加 SignaturePad 库 -->
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="assets/js/signature_pad.umd.min.js"></script>
     <style>
         .main-step {
             display: none;
@@ -274,27 +274,55 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
                                             <i class="fa-solid fa-upload me-2"></i>Choose File
                                         </label>
                                         <input type="file" class="form-control" id="logo" name="logo" accept="image/*" required>
+                                        <input type="hidden" id="existing_logo" name="existing_logo" value="">
+                                        <script>
+                                            <?php
+                                            $session_dir = 'assets/img/' . $_SESSION['username'] . '.png';
+                                            if (file_exists($session_dir)) {
+                                                echo "document.getElementById('existing_logo').value = '" . $session_dir . "';";
+                                                echo "document.getElementById('logo').required = false;";
+                                            }
+                                            ?>
+                                        </script>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Preview</label>
                                     <div class="logo-preview-container" id="logo-preview">
-                                        <div class="text-muted">Preview will appear here</div>
+                                        <?php
+                                        $session_dir = 'assets/img/' . $_SESSION['username'] . '.png';
+                                        if (file_exists($session_dir)) {
+                                            echo '<img src="' . $session_dir . '" alt="Logo Preview" style="max-width: 100%; max-height: 200px;">';
+                                        } else {
+                                            echo '<div class="text-muted">Preview will appear here</div>';
+                                        }
+                                        ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group mb-4">
-                            <label for="report-name">Report Name</label>
-                            <input type="text" class="form-control" id="report-name" name="report-name" required>
+                        <label for="">Report Name</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label for="report-name">Title 1</label>     
+                                    <input type="text" class="  form-control" id="report-name" name="report-name1" value="Quality Report," placeholder="Title 1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label for="report-name">Title 2</label>     
+                                    <input type="text" class="form-control" id="report-name2" name="report-name2" value="ASSY, PCB, XPS CARRIAGE" placeholder="Title 2" required>  
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group mb-4">
                             <label for="tools">Tools</label>
-                            <input type="text" class="form-control" id="tools" name="tools" required>
+                            <input type="text" class="form-control" id="tools" name="tools" value="Multimeter" required>
                         </div>
                         <div class="form-group mb-4">
                             <label for="reference-document">Reference document</label>
-                            <input type="text" class="form-control" id="reference-document" name="reference-document" required>
+                            <input type="text" class="form-control" id="reference-document" name="reference-document" value="332949-SX - SCHEMATIC, PCB, XPS CARRIAGE" required>
                         </div>
                         <div class="form-group mb-4">
                             <label for="bai_no">Brooks P/N & Revsion</label>
@@ -407,43 +435,30 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
                     <!-- Step 4: Revision History -->
                     <div class="main-step" data-step="4">
                         <h2 class="step-title">Revision History</h2>
-                        <div class="row">
-                            <div class="col-md-12 text-end">
-                                <button class="btn" type="button" id="add-rev" title="Add Row">
-                                    <i class="fa-solid fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
                         <table class="table table-bordered table-striped">
                             <tr>
-                                <th style="width: 8%;">Rev</th>
+                                <th style="width: 10%;">Rev</th>
                                 <th style="width: 10%;">ECO</th>
                                 <th style="width: 10%;">Date</th>
                                 <th style="width: 55%;">Action</th>
                                 <th style="width: 15%;">Author</th>
-                                <th style="width: 2%;"></th>
                             </tr>
                             <?php foreach ($revision_data as $revision) { ?>
                             <tr>
                                 <td>
-                                    <input class="form-control text-center" type="text" name="rev_revision[]" value="<?php echo $revision['Rev']; ?>">
+                                    <?php echo $revision['Rev']; ?>
                                 </td>
                                 <td>
-                                    <input class="form-control" type="text" name="eco_revision[]" value="<?php echo $revision['ECO']; ?>">
+                                    <?php echo $revision['ECO']; ?>
                                 </td>
                                 <td>
-                                    <input class="form-control" type="date" name="date_revision[]" value="<?php echo $revision['date']; ?>">
+                                    <?php echo $revision['date']; ?>
                                 </td>
                                 <td>
-                                    <textarea class="form-control" name="action_revision[]" rows="3"><?php echo $revision['action']; ?></textarea>
+                                    <?php echo $revision['action']; ?>
                                 </td>
                                 <td>
-                                    <input class="form-control" type="text" name="author_revision[]" value="<?php echo $revision['Author']; ?>">
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn text-danger fs-5" type="button"  onclick="del_rev(<?=$revision['id']?>)" title="Delete Row">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
+                                    <?php echo $revision['Author']; ?>
                                 </td>
                             </tr>
                             <?php } ?>
@@ -519,50 +534,13 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- 在body结束标签前添加jQuery和Select2的JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="assets/js/select2.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
             initSignaturePad();
 
-            // 修订历史表格的添加按钮
-            const addButtonRev = document.getElementById('add-rev');
-            const templateRowRev = document.getElementById('new_rev');
-            
-            if(addButtonRev && templateRowRev) {
-                addButtonRev.addEventListener('click', function() {
-                    // 克隆隐藏的行
-                    const newRow = templateRowRev.cloneNode(true);
-                    // 显示新行
-                    newRow.style.display = '';
-                    // 将新行插入到表格中
-                    templateRowRev.parentNode.insertBefore(newRow, templateRowRev);
-                });
-            }
-            // 为删除按钮添加事件委托
-            document.addEventListener('click', function(e) {
-                if(e.target.closest('.delete-row')) {
-                    e.target.closest('tr').remove();
-                }
-            });
         });
-
-        function del_rev(id) {
-            if(confirm('Are you sure you want to delete this data?')) {
-                var xhttp = new XMLHttpRequest();
-                xhttp.open("GET", "delete_report.php?rev_id=" + id, true);
-                xhttp.onreadystatechange = function() {
-                    if (this.readyState == 4 && this.status == 200) {
-                        // 找到包含这个 id 的按钮的父级 tr 元素并删除
-                        const deleteButton = document.querySelector(`button[onclick="del_rev(${id})"]`);
-                        if(deleteButton) {
-                            deleteButton.closest('tr').remove();
-                        }
-                    }
-                };
-                xhttp.send();
-            }
-        }
 
         // 初始化Select2
         $(document).ready(function() {

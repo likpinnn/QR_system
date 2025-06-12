@@ -16,6 +16,10 @@ $count_b_result = $conn->query($count_b);
 $count_b_data = $count_b_result->fetchAll(PDO::FETCH_ASSOC);
 $total_b = count($count_b_data);
 
+$revision_sql = "SELECT * FROM `revision_history`";
+$revision_result = $conn->query($revision_sql);
+$revision_data = $revision_result->fetchAll(PDO::FETCH_ASSOC);
+
 
 if(isset($_SESSION['display'])) {
     $display = $_SESSION['display'];
@@ -35,9 +39,34 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $step = $_POST['step'];
     $spec = $_POST['spec'];
     $type = $_POST['type'];
+    $rev_revision = $_POST['rev_revision'];
+    $eco_revision = $_POST['eco_revision'];
+    $date_revision = $_POST['date_revision'];
+    $action_revision = $_POST['action_revision'];
+    $author_revision = $_POST['author_revision'];
 
     $delete_sql = "DELETE FROM `report`";
     $delete_stmt = $conn->prepare($delete_sql);
+
+    $delete_rev_sql = "DELETE FROM `revision_history`";
+    $delete_rev_stmt = $conn->prepare($delete_rev_sql);
+
+    if($delete_rev_stmt->execute()) {
+        foreach($rev_revision as $key => $value) {
+            if(empty(trim($value))) {
+                continue;
+            }
+            $sql = "INSERT INTO `revision_history` (`Rev`, `ECO`, `date`, `action`, `Author`) VALUES (:rev, :eco, :date, :rev_action, :rev_author)";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([
+                ':rev' => $rev_revision[$key],
+                ':eco' => $eco_revision[$key],
+                ':date' => $date_revision[$key],
+                ':rev_action' => $action_revision[$key],
+                ':rev_author' => $author_revision[$key]
+            ]);
+        }
+    }
 
 
     if($delete_stmt->execute()) {
@@ -217,6 +246,71 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </table>
                     <?php }?>
 
+                    <h2 class="step-title">Revision History</h2>
+                    <div class="row">
+                        <div class="col-md-12 text-end">
+                            <button class="btn" type="button" id="add-rev" title="Add Row">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <table class="table table-bordered table-striped">
+                        <tr>
+                            <th style="width: 8%;">Rev</th>
+                            <th style="width: 10%;">ECO</th>
+                            <th style="width: 10%;">Date</th>
+                            <th style="width: 55%;">Action</th>
+                            <th style="width: 15%;">Author</th>
+                            <th style="width: 2%;"></th>
+                        </tr>
+                        <?php foreach ($revision_data as $revision) { ?>
+                        <tr>
+                            <td>
+                                <input class="form-control text-center" type="text" name="rev_revision[]" value="<?php echo $revision['Rev']; ?>">
+                            </td>
+                            <td>
+                                <input class="form-control" type="text" name="eco_revision[]" value="<?php echo $revision['ECO']; ?>">
+                            </td>
+                            <td>
+                                <input class="form-control" type="date" name="date_revision[]" value="<?php echo $revision['date']; ?>">
+                            </td>
+                            <td>
+                                <textarea class="form-control" name="action_revision[]" rows="3"><?php echo $revision['action']; ?></textarea>
+                            </td>
+                            <td>
+                                <input class="form-control" type="text" name="author_revision[]" value="<?php echo $revision['Author']; ?>">
+                            </td>
+                            <td class="text-center">
+                                <button class="btn text-danger fs-5" type="button"  onclick="del_rev(<?=$revision['id']?>)" title="Delete Row">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php } ?>
+                        <tr id="new_rev" style="display: none;">
+                            <td>
+                                <input class="form-control text-center" type="text" name="rev_revision[]" placeholder="Rev">
+                            </td>
+                            <td>
+                                <input class="form-control" type="text" name="eco_revision[]" placeholder="ECO">
+                            </td>
+                            <td>
+                                <input class="form-control" type="date" name="date_revision[]" placeholder="Date">
+                            </td>
+                            <td>
+                                <textarea class="form-control" name="action_revision[]" rows="3" placeholder="Action"></textarea>
+                            </td>
+                            <td>
+                                <input class="form-control" type="text" name="author_revision[]" placeholder="Author">
+                            </td>
+                            <td class="text-center fs-5">
+                                <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
+                                    <i class="fa-solid fa-minus mt-2"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+
                     <button class="col-12 btn btn-success mt-2" type="submit" onclick="showSuccessAlert()">Update</button>
 
                 </form>            
@@ -225,6 +319,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </body>
 <script>
+
 document.addEventListener('DOMContentLoaded', function() {
     var count = <?php echo $total_a; ?>;
     var count_b = <?php echo $total_b; ?>;
@@ -247,6 +342,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 修订历史表格的添加按钮
+    const addButtonRev = document.getElementById('add-rev');
+    const templateRowRev = document.getElementById('new_rev');
+
+    if(addButtonRev && templateRowRev) {
+        addButtonRev.addEventListener('click', function() {
+            // 克隆隐藏的行
+            const newRow = templateRowRev.cloneNode(true);
+            // 显示新行
+            newRow.style.display = '';
+            // 将新行插入到表格中
+            templateRowRev.parentNode.insertBefore(newRow, templateRowRev);
+        });
+    }
+
     // 为删除按钮添加事件委托
     document.addEventListener('click', function(e) {
         if(e.target.closest('.delete-row')) {
@@ -254,6 +364,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function del_rev(id) {
+    if(confirm('Are you sure you want to delete this data?')) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "delete_report.php?rev_id=" + id, true);
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                // 找到包含这个 id 的按钮的父级 tr 元素并删除
+                const deleteButton = document.querySelector(`button[onclick="del_rev(${id})"]`);
+                if(deleteButton) {
+                    deleteButton.closest('tr').remove();
+                }
+            }
+        };
+        xhttp.send();
+    }
+}
 
 
 function del_data(id) {
