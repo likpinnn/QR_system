@@ -5,11 +5,9 @@ include_once('db.php');
 //     exit();
 // }
 
-// print_r($_FILES['logo']);
 
 // 处理logo
 if (isset($_FILES['logo'])) {
-    if(($_FILES['logo']) == null){
         // 检查上传错误
         if ($_FILES['logo']['error'] !== UPLOAD_ERR_OK) {
             die('Logo upload error: ' . $_FILES['logo']['error']);
@@ -33,7 +31,6 @@ if (isset($_FILES['logo'])) {
         if (!move_uploaded_file($file['tmp_name'], $filepath)) {
             die('Failed to save logo file. Error: ' . error_get_last()['message']);
         }
-    }
     
 }
 
@@ -80,7 +77,7 @@ $total_a = count($count_a_data);
 $cc = [];
 $cc2 = [];
 for($i=1; $i<=$total_a; $i++){
-    if($i <= 5){
+    if($i <= 4){
         $cc[] = $_POST['step'.$i];
     }else{
         $cc2[] = $_POST['step'.$i];
@@ -123,7 +120,7 @@ $date = $_POST['date'];
     <style>
         .A4 {
             width: 210mm;
-            min-height: 297mm;
+            min-height: 290mm;
             padding: 10mm 20mm;
             margin: 0 auto;
             background: white;
@@ -174,24 +171,14 @@ $date = $_POST['date'];
             font-size: 16px;
             display: none;
         }
-        .submit-btn{
-            position: fixed;
-            top: 200px;
-            right: 20px;
-            z-index: 1000;
-            padding: 10px 35px;
-            background-color:rgb(70, 178, 79);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
         .export-btn:hover {
             background-color: #0056b3;
         }
         .footer {
-            position: relative;
+            position: absolute;
+            bottom: 0;
+            left: 20mm;
+            right: 20mm;
             margin-top: auto;
             background: white;
             border-top: 1px solid #000;
@@ -267,7 +254,6 @@ $date = $_POST['date'];
     <button class="export-btn" id="export-btn" onclick="exportToPDF()">Save to PDF</button>
     <button class="print-btn" id="print-btn" onclick="printContent()">Print</button>
     <button class="back-btn" onclick="handleBack()" >Back</button>
-    <input type="submit" value="Update" class="submit-btn">
     <div id="content-container">
         <form action="" method="post">
             <div class="A4">
@@ -477,7 +463,7 @@ $date = $_POST['date'];
                                             <th class="bg-primary text-white" style="width: 10%;">Pass/Fail</th>
                                         </tr>
                                         <?php 
-                                        $x = 5;
+                                        $x = 4;
                                         $current_step = 0;
                                         $rowspan_count = 0;
                                         $first_row = true;
@@ -560,7 +546,7 @@ $date = $_POST['date'];
                         </div>
                     <?php } ?>
                     <!-- Final Verification Section -->
-                    <div class="col-md-12 content-section">
+                    <div class="col-md-12 content-section mt-4">
                         <div class="row">
                             <div class="col-md-12">
                                 <h5 class="text-primary">Final Verification</h5>
@@ -663,7 +649,7 @@ $date = $_POST['date'];
                         </div>
                     </div>
                 </div>
-                <div class="footer">
+                <div class="footer mt-3">
                     <div class="row">
                         <div class="col-md-12">
                             <div>Proprietary information - This document and the information disclosed herein is confidential and proprietary to Brooks Automation and may not be reproduced in whole or in part or disclosed to any third party or used without the prior written consent of Brooks Automation, Inc. </div>
@@ -722,12 +708,15 @@ $date = $_POST['date'];
             const totalPages = document.querySelectorAll('.A4').length;
             console.log(totalPages);
 
+            // 将所有输入框设置为只读
+            setInputsReadOnly(true);
+
             const opt = {
                 margin: 0,
                 filename: filename,
                 image: { type: 'jpeg', quality: 1 },
                 html2canvas: { 
-                    scale: 2,
+                    scale: 1.5,
                     useCORS: true,
                     letterRendering: true,
                     logging: true,
@@ -799,6 +788,8 @@ $date = $_POST['date'];
         function handleBack() {
             if (!isPdfSaved) {
                 if (confirm('You have not saved the PDF. Do you want to save before leaving?')) {
+                    // 如果用户选择保存，先恢复输入框状态
+                    setInputsReadOnly(false);
                     window.location.href = 'index.php';
                 }
             } else {
@@ -835,7 +826,9 @@ $date = $_POST['date'];
                     newPage.innerHTML = `
                         <div class="content-wrapper">
                             <div class="row"></div>
-                            <div class="footer">
+                            
+                        </div>
+                        <div class="footer mt-3 ">
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div>Proprietary information - This document and the information disclosed herein is confidential and proprietary to Brooks Automation and may not be reproduced in whole or in part or disclosed to any third party or used without the prior written consent of Brooks Automation, Inc. </div>
@@ -862,7 +855,6 @@ $date = $_POST['date'];
                                     </div>
                                 </div>
                             </div>
-                        </div>
                         
                     `;
                     container.appendChild(newPage);
@@ -983,6 +975,32 @@ $date = $_POST['date'];
                 updatePassFailColor(select);
             });
         });
+
+        function setInputsReadOnly(isReadOnly) {
+            // 获取所有输入框
+            const inputs = document.querySelectorAll('input[type="text"]');
+            const selects = document.querySelectorAll('select');
+            
+            // 设置输入框为只读
+            inputs.forEach(input => {
+                input.readOnly = isReadOnly;
+                if (isReadOnly) {
+                    input.style.cursor = 'not-allowed';
+                } else {
+                    input.style.cursor = '';
+                }
+            });
+            
+            // 设置下拉框为禁用
+            selects.forEach(select => {
+                select.disabled = isReadOnly;
+                if (isReadOnly) {
+                    select.style.cursor = 'not-allowed';
+                } else {
+                    select.style.cursor = '';
+                }
+            });
+        }
     </script>
 </body>
 </html> 

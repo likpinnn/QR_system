@@ -104,7 +104,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         color: #0d6efd;
     }
 </style>
-<?php include_once 'header.php'; ?>
+<?php 
+    include_once 'header.php'; 
+    include_once 'loading.php';
+?>
 <body>
     <div class="container">
         <div class="row">

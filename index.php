@@ -227,7 +227,10 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
         }
     </style>
 </head>
-<?php include_once 'header.php'; ?>
+<?php 
+    include_once 'header.php'; 
+    include_once 'loading.php';
+?>
 <body>
     <div class="container">
         <div class="row">
@@ -536,11 +539,6 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="assets/js/select2.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            initSignaturePad();
-
-        });
 
         // 初始化Select2
         $(document).ready(function() {
@@ -924,8 +922,13 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
                 return;
             }
 
-             // 显示预览
-             const reader = new FileReader();
+            // 创建一个新的FileList对象
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            logoInput.files = dataTransfer.files;
+
+            // 显示预览
+            const reader = new FileReader();
             reader.onload = function(e) {
                 const preview = document.getElementById('logo-preview');
                 preview.innerHTML = `<img src="${e.target.result}" alt="Logo Preview">`;

@@ -4,6 +4,7 @@ include_once 'db.php';
 // 获取当前页码
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $rev_page = isset($_GET['rev_page']) ? (int)$_GET['rev_page'] : 1;
+$active_tab = isset($_GET['active_tab']) ? $_GET['active_tab'] : 'bai';
 $records_per_page = 5;
 $offset = ($page - 1) * $records_per_page;
 $rev_offset = ($rev_page - 1) * $records_per_page;
@@ -68,7 +69,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     }
 
-    header('Location: serial.php');
+    // 获取当前选中的tab
+    $active_tab = isset($_POST['active_tab']) ? $_POST['active_tab'] : 'bai';
+    header('Location: serial.php?active_tab=' . $active_tab);
     exit();
 }
 
@@ -101,8 +104,43 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         font-size: 0.7rem;
         color: #6c757d;
     }
+    /* Tab样式 */
+    .nav-tabs .nav-link {
+        color: #495057;
+        font-weight: 500;
+    }
+    .nav-tabs .nav-link.active {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+    .tab-content {
+        padding: 20px 0;
+    }
+    /* 搜索框样式 */
+    .search-container {
+        margin-bottom: 1rem;
+    }
+    .search-container .form-control {
+        border-radius: 20px;
+        padding-left: 1rem;
+    }
+    .search-container .input-group-text {
+        border-radius: 20px;
+        background: transparent;
+        border-left: none;
+    }
+    .search-container .form-control:focus {
+        box-shadow: none;
+        border-color: #ced4da;
+    }
+    .search-container .form-control:focus + .input-group-text {
+        border-color: #ced4da;
+    }
 </style>
-<?php include_once 'header.php'; ?>
+<?php 
+    include_once 'header.php'; 
+    include_once 'loading.php';
+?>
 <body>
     <div class="container">
         <div class="row">
@@ -116,177 +154,210 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <form action="" method="post">
-                    <div class="row mt-5">
-                        <div class="col-md-6">
-                            <table class="table table-bordered table-striped">
-                                <tr class="table-dark">
-                                    <th class="w-100">Bai No</th>
-                                    <th></th>
-                                </tr>
-                                <?php foreach ($bai_data as $bai) { ?>
-                                <tr>
-                                    <td>
-                                        <?php echo $bai['bai_no']; ?>
-                                    </td>
-                                    <td>
-                                        <button class="btn text-danger fs-5" onclick="del_bai(<?php echo $bai['id']; ?>)">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <?php } ?>
-                                <tr>
-                                    <td>
-                                        <input type="text" name="bai_no[]" class="form-control" placeholder="Bai No">
-                                    </td>
-                                    <td>
-                                        <button class="btn text-success fs-5" type="button" id="add-bai" title="Add Row">
-                                            <i class="fa-solid fa-plus"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr id="new_bai" style="display: none;">
-                                    <td>
-                                        <input type="text" name="bai_no[]" class="form-control" placeholder="Bai No">
-                                    </td>
-                                    <td class="text-center fs-5">
-                                        <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
-                                            <i class="fa-solid fa-minus mt-2"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>    
-                            <!-- Bai No 分页 -->
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="pagination-info">
-                                    Showing <?php echo min(($page-1)*$records_per_page + 1, $bai_total_records); ?> to 
-                                    <?php echo min($page*$records_per_page, $bai_total_records); ?> of 
-                                    <?php echo $bai_total_records; ?> entries
+                    <input type="hidden" name="active_tab" value="<?php echo $active_tab; ?>">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a href="?active_tab=bai" class="link-dark link-underline link-underline-opacity-0">
+                                <button class="nav-link <?php echo $active_tab === 'bai' ? 'active' : ''; ?>" id="bai-tab" data-bs-toggle="tab" data-bs-target="#bai" type="button" role="tab" aria-controls="bai" aria-selected="<?php echo $active_tab === 'bai' ? 'true' : 'false'; ?>">Bai No</button>
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a href="?active_tab=rev" class="link-dark link-underline link-underline-opacity-0">
+                                <button class="nav-link <?php echo $active_tab === 'rev' ? 'active' : ''; ?>" id="rev-tab" data-bs-toggle="tab" data-bs-target="#rev" type="button" role="tab" aria-controls="rev" aria-selected="<?php echo $active_tab === 'rev' ? 'true' : 'false'; ?>">Rev</button>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade <?php echo $active_tab === 'bai' ? 'show active' : ''; ?>" id="bai" role="tabpanel" aria-labelledby="bai-tab">
+                            <div class="search-container">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="bai-search" placeholder="Search Bai No...">
+                                    <span class="input-group-text">
+                                        <i class="fa-solid fa-search"></i>
+                                    </span>
                                 </div>
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination mb-0">
-                                        <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-                                            <a class="page-link" href="?page=<?php echo $page-1; ?>&rev_page=<?php echo $rev_page; ?>" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
+                            </div>
+                            <div id="bai-results">
+                                <table class="table table-bordered table-striped">
+                                    <tr class="table-dark">
+                                        <th class="w-100">Bai No</th>
+                                        <th></th>
+                                    </tr>
+                                    <?php foreach ($bai_data as $bai) { ?>
+                                    <tr>
+                                        <td>
+                                            <?php echo $bai['bai_no']; ?>
+                                        </td>
+                                        <td>
+                                            <button class="btn text-danger fs-5" onclick="del_bai(<?php echo $bai['id']; ?>)">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <?php } ?>
+                                    <tr>
+                                        <td>
+                                            <input type="text" name="bai_no[]" class="form-control" placeholder="Bai No">
+                                        </td>
+                                        <td>
+                                            <button class="btn text-success fs-5" type="button" id="add-bai" title="Add Row">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr id="new_bai" style="display: none;">
+                                        <td>
+                                            <input type="text" name="bai_no[]" class="form-control" placeholder="Bai No">
+                                        </td>
+                                        <td class="text-center fs-5">
+                                            <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
+                                                <i class="fa-solid fa-minus mt-2"></i>
                                             </a>
-                                        </li>
-                                        <?php
-                                        $start_page = max(1, $page - 1);
-                                        $end_page = min($bai_total_pages, $page + 1);
-                                        
-                                        if($start_page > 1) {
-                                            echo '<li class="page-item"><a class="page-link" href="?page=1">1</a></li>';
-                                            if($start_page > 2) {
-                                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                                            }
-                                        }
-                                        
-                                        for($i = $start_page; $i <= $end_page; $i++): ?>
-                                            <li class="page-item <?php echo $page == $i ? 'active' : ''; ?>">
-                                                <a class="page-link" href="?page=<?php echo $i; ?>&rev_page=<?php echo $rev_page; ?>"><?php echo $i; ?></a>
+                                        </td>
+                                    </tr>
+                                </table>    
+                                <!-- Bai No 分页 -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="pagination-info">
+                                        Showing <?php echo min(($page-1)*$records_per_page + 1, $bai_total_records); ?> to 
+                                        <?php echo min($page*$records_per_page, $bai_total_records); ?> of 
+                                        <?php echo $bai_total_records; ?> entries
+                                    </div>
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination mb-0">
+                                            <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                                                <a class="page-link" href="?page=<?php echo $page-1; ?>&active_tab=bai" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
                                             </li>
-                                        <?php endfor;
-                                        
-                                        if($end_page < $bai_total_pages) {
-                                            if($end_page < $bai_total_pages - 1) {
-                                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                            <?php
+                                            $start_page = max(1, $page - 1);
+                                            $end_page = min($bai_total_pages, $page + 1);
+                                            
+                                            if($start_page > 1) {
+                                                echo '<li class="page-item"><a class="page-link" href="?page=1&active_tab=bai">1</a></li>';
+                                                if($start_page > 2) {
+                                                    echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                                }
                                             }
-                                            echo '<li class="page-item"><a class="page-link" href="?page='.$bai_total_pages.'">'.$bai_total_pages.'</a></li>';
-                                        }
-                                        ?>
-                                        <li class="page-item <?php echo $page >= $bai_total_pages ? 'disabled' : ''; ?>">
-                                            <a class="page-link" href="?page=<?php echo $page+1; ?>&rev_page=<?php echo $rev_page; ?>" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </nav>
+                                            
+                                            for($i = $start_page; $i <= $end_page; $i++): ?>
+                                                <li class="page-item <?php echo $page == $i ? 'active' : ''; ?>">
+                                                    <a class="page-link" href="?page=<?php echo $i; ?>&active_tab=bai"><?php echo $i; ?></a>
+                                                </li>
+                                            <?php endfor;
+                                            
+                                            if($end_page < $bai_total_pages) {
+                                                if($end_page < $bai_total_pages - 1) {
+                                                    echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                                }
+                                                echo '<li class="page-item"><a class="page-link" href="?page='.$bai_total_pages.'&active_tab=bai">'.$bai_total_pages.'</a></li>';
+                                            }
+                                            ?>
+                                            <li class="page-item <?php echo $page >= $bai_total_pages ? 'disabled' : ''; ?>">
+                                                <a class="page-link" href="?page=<?php echo $page+1; ?>&active_tab=bai" aria-label="Next">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <table class="table table-bordered table-striped">
-                                <tr class="table-dark">
-                                    <th class="w-100">Rev</th>
-                                    <th></th>
-                                </tr>
-                                <?php foreach ($rev_data as $rev) { ?>
-                                <tr>
-                                    <td>
-                                        <?php echo $rev['rev']; ?>
-                                    </td>
-                                    <td>
-                                        <button class="btn text-danger fs-5" onclick="del_rev(<?php echo $rev['id']; ?>)">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <?php } ?>
-                                <tr>
-                                    <td>
-                                        <input type="text" name="rev[]" class="form-control" placeholder="Rev">
-                                    </td>
-                                    <td>
-                                        <button class="btn text-success fs-5" type="button" id="add-rev" title="Add Row">
-                                            <i class="fa-solid fa-plus"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr id="new_rev" style="display: none;">
-                                    <td>
-                                        <input type="text" name="rev[]" class="form-control" placeholder="Rev">
-                                    </td>
-                                    <td class="text-center fs-5">
-                                        <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
-                                            <i class="fa-solid fa-minus mt-2"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>    
-                            <!-- Rev 分页 -->
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="pagination-info">
-                                    Showing <?php echo min(($rev_page-1)*$records_per_page + 1, $rev_total_records); ?> to 
-                                    <?php echo min($rev_page*$records_per_page, $rev_total_records); ?> of 
-                                    <?php echo $rev_total_records; ?> entries
+                        <div class="tab-pane fade <?php echo $active_tab === 'rev' ? 'show active' : ''; ?>" id="rev" role="tabpanel" aria-labelledby="rev-tab">
+                            <div class="search-container">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="rev-search" placeholder="Search Rev...">
+                                    <span class="input-group-text">
+                                        <i class="fa-solid fa-search"></i>
+                                    </span>
                                 </div>
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination mb-0">
-                                        <li class="page-item <?php echo $rev_page <= 1 ? 'disabled' : ''; ?>">
-                                            <a class="page-link" href="?rev_page=<?php echo $rev_page-1; ?>&page=<?php echo $page; ?>" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
+                            </div>
+                            <div id="rev-results">
+                                <table class="table table-bordered table-striped">
+                                    <tr class="table-dark">
+                                        <th class="w-100">Rev</th>
+                                        <th></th>
+                                    </tr>
+                                    <?php foreach ($rev_data as $rev) { ?>
+                                    <tr>
+                                        <td>
+                                            <?php echo $rev['rev']; ?>
+                                        </td>
+                                        <td>
+                                            <button class="btn text-danger fs-5" onclick="del_rev(<?php echo $rev['id']; ?>)">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <?php } ?>
+                                    <tr>
+                                        <td>
+                                            <input type="text" name="rev[]" class="form-control" placeholder="Rev">
+                                        </td>
+                                        <td>
+                                            <button class="btn text-success fs-5" type="button" id="add-rev" title="Add Row">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr id="new_rev" style="display: none;">
+                                        <td>
+                                            <input type="text" name="rev[]" class="form-control" placeholder="Rev">
+                                        </td>
+                                        <td class="text-center fs-5">
+                                            <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
+                                                <i class="fa-solid fa-minus mt-2"></i>
                                             </a>
-                                        </li>
-                                        <?php
-                                        $start_page = max(1, $rev_page - 1);
-                                        $end_page = min($rev_total_pages, $rev_page + 1);
-                                        
-                                        if($start_page > 1) {
-                                            echo '<li class="page-item"><a class="page-link" href="?rev_page=1">1</a></li>';
-                                            if($start_page > 2) {
-                                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                                            }
-                                        }
-                                        
-                                        for($i = $start_page; $i <= $end_page; $i++): ?>
-                                            <li class="page-item <?php echo $rev_page == $i ? 'active' : ''; ?>">
-                                                <a class="page-link" href="?rev_page=<?php echo $i; ?>&page=<?php echo $page; ?>"><?php echo $i; ?></a>
+                                        </td>
+                                    </tr>
+                                </table>    
+                                <!-- Rev 分页 -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="pagination-info">
+                                        Showing <?php echo min(($rev_page-1)*$records_per_page + 1, $rev_total_records); ?> to 
+                                        <?php echo min($rev_page*$records_per_page, $rev_total_records); ?> of 
+                                        <?php echo $rev_total_records; ?> entries
+                                    </div>
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination mb-0">
+                                            <li class="page-item <?php echo $rev_page <= 1 ? 'disabled' : ''; ?>">
+                                                <a class="page-link" href="?rev_page=<?php echo $rev_page-1; ?>&active_tab=rev" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
                                             </li>
-                                        <?php endfor;
-                                        
-                                        if($end_page < $rev_total_pages) {
-                                            if($end_page < $rev_total_pages - 1) {
-                                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                            <?php
+                                            $start_page = max(1, $rev_page - 1);
+                                            $end_page = min($rev_total_pages, $rev_page + 1);
+                                            
+                                            if($start_page > 1) {
+                                                echo '<li class="page-item"><a class="page-link" href="?rev_page=1&active_tab=rev">1</a></li>';
+                                                if($start_page > 2) {
+                                                    echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                                }
                                             }
-                                            echo '<li class="page-item"><a class="page-link" href="?rev_page='.$rev_total_pages.'">'.$rev_total_pages.'</a></li>';
-                                        }
-                                        ?>
-                                        <li class="page-item <?php echo $rev_page >= $rev_total_pages ? 'disabled' : ''; ?>">
-                                            <a class="page-link" href="?rev_page=<?php echo $rev_page+1; ?>&page=<?php echo $page; ?>" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </nav>
+                                            
+                                            for($i = $start_page; $i <= $end_page; $i++): ?>
+                                                <li class="page-item <?php echo $rev_page == $i ? 'active' : ''; ?>">
+                                                    <a class="page-link" href="?rev_page=<?php echo $i; ?>&active_tab=rev"><?php echo $i; ?></a>
+                                                </li>
+                                            <?php endfor;
+                                            
+                                            if($end_page < $rev_total_pages) {
+                                                if($end_page < $rev_total_pages - 1) {
+                                                    echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                                }
+                                                echo '<li class="page-item"><a class="page-link" href="?rev_page='.$rev_total_pages.'&active_tab=rev">'.$rev_total_pages.'</a></li>';
+                                            }
+                                            ?>
+                                            <li class="page-item <?php echo $rev_page >= $rev_total_pages ? 'disabled' : ''; ?>">
+                                                <a class="page-link" href="?rev_page=<?php echo $rev_page+1; ?>&active_tab=rev" aria-label="Next">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -356,5 +427,68 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                 e.target.closest('tr').remove();
             }
         });
+
+        // 搜索功能
+        let baiSearchTimeout;
+        let revSearchTimeout;
+        let currentBaiPage = 1;
+        let currentRevPage = 1;
+
+        document.getElementById('bai-search').addEventListener('input', function(e) {
+            clearTimeout(baiSearchTimeout);
+            currentBaiPage = 1; // 重置页码
+            baiSearchTimeout = setTimeout(() => {
+                const searchTerm = e.target.value;
+                searchBaiNo(searchTerm, currentBaiPage);
+            }, 300);
+        });
+
+        document.getElementById('rev-search').addEventListener('input', function(e) {
+            clearTimeout(revSearchTimeout);
+            currentRevPage = 1; // 重置页码
+            revSearchTimeout = setTimeout(() => {
+                const searchTerm = e.target.value;
+                searchRev(searchTerm, currentRevPage);
+            }, 300);
+        });
+
+        // 为搜索结果的分页链接添加事件委托
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.search-page-link')) {
+                e.preventDefault();
+                const page = e.target.closest('.search-page-link').dataset.page;
+                const searchTerm = e.target.closest('.tab-pane').querySelector('input[type="text"]').value;
+                
+                if (e.target.closest('#bai-results')) {
+                    currentBaiPage = parseInt(page);
+                    searchBaiNo(searchTerm, currentBaiPage);
+                } else if (e.target.closest('#rev-results')) {
+                    currentRevPage = parseInt(page);
+                    searchRev(searchTerm, currentRevPage);
+                }
+            }
+        });
+
+        function searchBaiNo(searchTerm, page) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `search.php?type=bai&search=${encodeURIComponent(searchTerm)}&page=${page}`, true);
+            xhr.onreadystatechange = function() {
+                if (this.readyState === 4 && this.status === 200) {
+                    document.getElementById('bai-results').innerHTML = this.responseText;
+                }
+            };
+            xhr.send();
+        }
+
+        function searchRev(searchTerm, page) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `search.php?type=rev&search=${encodeURIComponent(searchTerm)}&page=${page}`, true);
+            xhr.onreadystatechange = function() {
+                if (this.readyState === 4 && this.status === 200) {
+                    document.getElementById('rev-results').innerHTML = this.responseText;
+                }
+            };
+            xhr.send();
+        }
     });
 </script>
