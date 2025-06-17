@@ -70,7 +70,7 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
         .main-step-indicator {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 50px;
         }
         .main-step-dot {
             width: 40px;
@@ -121,7 +121,7 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 1rem;
         }
         .step-title {
-            margin-bottom: 2rem;
+            margin-bottom: 50px;
             color: #0d6efd;
         }
         /* 添加签名画板样式 */
@@ -153,6 +153,7 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            height: 88%;
         }
         #logo-preview img {
             max-width: 100%;
@@ -167,7 +168,7 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
         .logo-upload-container {
             border: 2px dashed #dee2e6;
             border-radius: 8px;
-            padding: 20px;
+            padding: 50px;
             text-align: center;
             transition: all 0.3s ease;
             background-color: #f8f9fa;
@@ -224,6 +225,11 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
             color: #dc3545;
             font-size: 0.875rem;
             font-weight: normal;
+        }
+        .btn-primary{
+            width: 135px;
+            font-size: 16px;
+            border-radius: 2rem !important;
         }
     </style>
 </head>
