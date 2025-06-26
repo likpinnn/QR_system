@@ -18,6 +18,10 @@ $role = $row['role'];
 
 
 ?>
+<!-- 浏览器图标 -->
+<link rel="icon" type="image/x-icon" href="assets/ico/QR.ico">
+<link rel="shortcut icon" type="image/x-icon" href="assets/ico/QR.ico">
+
 <link rel="stylesheet" href="assets/css/bootstrap.min.css">
 <link rel="stylesheet" href="assets/css/bootstrap-icons.css">
 <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">

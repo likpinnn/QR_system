@@ -686,6 +686,18 @@ $date = $_POST['date'];
         let isPdfSaved = false;  // 添加变量跟踪PDF保存状态
         let savedPdfPath = '';   // 添加变量存储保存的PDF路径
 
+        // 定义beforeunload事件处理函数
+        function beforeUnloadHandler(e) {
+            if (!isPdfSaved) {
+                e.preventDefault();
+                e.returnValue = 'You have not saved the PDF. Do you want to save before leaving?';
+                return 'You have not saved the PDF. Do you want to save before leaving?';
+            }
+        }
+
+        // 添加页面离开事件监听器
+        window.addEventListener('beforeunload', beforeUnloadHandler);
+
         function uniqueId() {
             return Math.random().toString(36).substr(2, 9);
         }
@@ -763,6 +775,8 @@ $date = $_POST['date'];
                             savedPdfPath = data.path;  // 保存PDF路径
                             document.getElementById('export-btn').style.display = 'none';
                             document.getElementById('print-btn').style.display = 'block';
+                            // 移除beforeunload事件监听器，因为PDF已经保存
+                            window.removeEventListener('beforeunload', beforeUnloadHandler);
                             alert('PDF is saved');
                         } else {
                             console.error('Error:', data);
@@ -788,12 +802,24 @@ $date = $_POST['date'];
         function handleBack() {
             if (!isPdfSaved) {
                 if (confirm('You have not saved the PDF. Do you want to save before leaving?')) {
-                    // 如果用户选择保存，先恢复输入框状态
-                    setInputsReadOnly(false);
+                    // 如果用户确认离开，移除beforeunload事件监听器
+                    window.removeEventListener('beforeunload', beforeUnloadHandler);
                     window.location.href = 'index.php';
                 }
             } else {
                 window.location.href = 'index.php';
+            }
+        }
+
+        // 安全跳转函数
+        function safeNavigate(url) {
+            if (!isPdfSaved) {
+                if (confirm('You have not saved the PDF. Do you want to save before leaving?')) {
+                    window.removeEventListener('beforeunload', beforeUnloadHandler);
+                    window.location.href = url;
+                }
+            } else {
+                window.location.href = url;
             }
         }
 
@@ -870,6 +896,37 @@ $date = $_POST['date'];
 
         // 页面加载完成后执行分页
         window.addEventListener('load', splitContentIntoPages);
+
+        // 拦截所有链接点击事件
+        document.addEventListener('click', function(e) {
+            // 检查是否点击的是链接
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                const link = e.target.tagName === 'A' ? e.target : e.target.closest('a');
+                const href = link.getAttribute('href');
+                
+                // 如果是外部链接或logout链接，不拦截
+                if (href && !href.startsWith('javascript:') && !href.startsWith('#') && !href.includes('logout.php')) {
+                    if (!isPdfSaved) {
+                        e.preventDefault();
+                        if (confirm('You have not saved the PDF. Do you want to save before leaving?')) {
+                            window.removeEventListener('beforeunload', beforeUnloadHandler);
+                            window.location.href = href;
+                        }
+                    }
+                }
+            }
+        });
+
+        // 拦截表单提交事件
+        document.addEventListener('submit', function(e) {
+            if (!isPdfSaved) {
+                e.preventDefault();
+                if (confirm('You have not saved the PDF. Do you want to save before leaving?')) {
+                    window.removeEventListener('beforeunload', beforeUnloadHandler);
+                    e.target.submit();
+                }
+            }
+        });
 
         // 添加Logo预览功能
         document.getElementById('logoInput').addEventListener('change', function(e) {

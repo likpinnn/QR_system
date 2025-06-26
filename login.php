@@ -32,9 +32,12 @@ if(isset($_POST['login'])) {
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+    <link rel="icon" type="image/x-icon" href="assets/ico/QR.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/ico/QR.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Report System</title>
+    
     <style>
         body {
             background-color: #f8f9fa;
