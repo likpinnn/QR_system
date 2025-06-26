@@ -1,12 +1,32 @@
 <?php
 include_once 'db.php';
 
+// 辅助函数：构建分页链接参数
+function buildPaginationParams($search, $search_type, $start_date, $end_date) {
+    $params = array();
+    if (!empty($search)) {
+        $params[] = 'search=' . urlencode($search);
+    }
+    if (!empty($search_type) && $search_type != 'all') {
+        $params[] = 'search_type=' . urlencode($search_type);
+    }
+    if (!empty($start_date)) {
+        $params[] = 'start_date=' . urlencode($start_date);
+    }
+    if (!empty($end_date)) {
+        $params[] = 'end_date=' . urlencode($end_date);
+    }
+    return !empty($params) ? '&' . implode('&', $params) : '';
+}
+
 // 设置每页显示的记录数
 $records_per_page = 10;
 
 // 获取搜索参数
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $search_type = isset($_GET['search_type']) ? $_GET['search_type'] : 'all';
+$start_date = isset($_GET['start_date']) ? trim($_GET['start_date']) : '';
+$end_date = isset($_GET['end_date']) ? trim($_GET['end_date']) : '';
 
 // 获取当前页码
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -20,42 +40,61 @@ if($_SESSION['role'] == 'user'){
 $params = array();
 
 if (!empty($search)) {
+    if (!empty($where_clause)) {
+        $where_clause .= " AND ";
+    } else {
+        $where_clause = "WHERE ";
+    }
+    
     switch($search_type) {
         case 'bai_no':
             if($_SESSION['role'] == 'user'){
-                $where_clause = "WHERE A.user_id = '$_SESSION[userid]' AND A.pdf LIKE :search";
+                $where_clause .= "A.user_id = '$_SESSION[userid]' AND A.pdf LIKE :search";
             }else{
-                $where_clause = "WHERE A.pdf LIKE :search";
+                $where_clause .= "A.pdf LIKE :search";
             }
             $params[':search'] = "%$search%";
             break;
         case 'rev':
             if($_SESSION['role'] == 'user'){
-                $where_clause = "WHERE A.user_id = '$_SESSION[userid]' AND A.pdf LIKE :search";
+                $where_clause .= "A.user_id = '$_SESSION[userid]' AND A.pdf LIKE :search";
             }else{
-                $where_clause = "WHERE A.pdf LIKE :search";
-            }
-            $params[':search'] = "%$search%";
-            break;
-        case 'date':
-            if($_SESSION['role'] == 'user'){
-                $where_clause = "WHERE A.user_id = '$_SESSION[userid]' AND A.created_at LIKE :search";
-            }else{
-                $where_clause = "WHERE A.created_at LIKE :search";
+                $where_clause .= "A.pdf LIKE :search";
             }
             $params[':search'] = "%$search%";
             break;
         case 'name':
-            $where_clause = "WHERE B.name LIKE :search";
+            $where_clause .= "B.name LIKE :search";
             $params[':search'] = "%$search%";
             break;
         default:
             if($_SESSION['role'] == 'user'){
-                $where_clause = "WHERE A.user_id = '$_SESSION[userid]' AND (A.pdf LIKE :search OR A.created_at LIKE :search OR B.name LIKE :search)";
+                $where_clause .= "A.user_id = '$_SESSION[userid]' AND (A.pdf LIKE :search OR B.name LIKE :search)";
             }else{
-                $where_clause = "WHERE A.pdf LIKE :search OR A.created_at LIKE :search OR B.name LIKE :search";
+                $where_clause .= "A.pdf LIKE :search OR B.name LIKE :search";
             }
             $params[':search'] = "%$search%";
+    }
+}
+
+// 处理日期范围筛选
+if (!empty($start_date) || !empty($end_date)) {
+    if (!empty($where_clause)) {
+        $where_clause .= " AND ";
+    } else {
+        $where_clause = "WHERE ";
+    }
+    
+    if (!empty($start_date) && !empty($end_date)) {
+        $where_clause .= "DATE(A.created_at) BETWEEN :start_date AND :end_date";
+        $params[':start_date'] = $start_date;
+        $params[':end_date'] = $end_date;
+    } elseif (!empty($start_date)) {
+        $where_clause .= "DATE(A.created_at) >= :start_date";
+        $params[':start_date'] = $start_date;
+    } elseif (!empty($end_date)) {
+        $where_clause .= "DATE(A.created_at) <= :end_date";
+        $params[':end_date'] = $end_date;
     }
 }
 
@@ -108,31 +147,15 @@ $pdfs = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <style>
         .search-container {
             margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
         }
-        .search-input {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 200px;
+        .search-input, .date-input, .search-select {
+            min-width: 120px;
         }
-        .search-select {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .input-group-text {
+            background: #f8f9fa;
         }
-        .search-button {
-            padding: 8px 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .search-button:hover {
-            background-color: #0056b3;
+        .search-button, .clear-button {
+            min-width: 90px;
         }
         .pagination {
             display: flex;
@@ -169,36 +192,57 @@ $pdfs = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h1 class="mb-5">PDF History</h1>
+                <h1 class="mb-4 mt-2"><i class="fa-solid fa-file-pdf me-3"></i>PDF History</h1>
                 
                 <!-- 搜索栏 -->
                 <div class="search-container">
-                    <form method="GET" action="" class="d-flex">
-                        <select name="search_type" class="search-select">
-                            <option value="all" <?php echo $search_type == 'all' ? 'selected' : ''; ?>>All</option>
-                            <option value="bai_no" <?php echo $search_type == 'bai_no' ? 'selected' : ''; ?>>BAI No</option>
-                            <option value="rev" <?php echo $search_type == 'rev' ? 'selected' : ''; ?>>Rev</option>
-                            <option value="date" <?php echo $search_type == 'date' ? 'selected' : ''; ?>>Date</option>
-                            <?php if($_SESSION['role'] == 'admin'): ?>
-                                <option value="name" <?php echo $search_type == 'name' ? 'selected' : ''; ?>>Name</option>
+                    <form method="GET" action="">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-auto">
+                                <select name="search_type" class="form-select search-select">
+                                    <option value="all" <?php echo $search_type == 'all' ? 'selected' : ''; ?>>All</option>
+                                    <option value="bai_no" <?php echo $search_type == 'bai_no' ? 'selected' : ''; ?>>BAI No</option>
+                                    <option value="rev" <?php echo $search_type == 'rev' ? 'selected' : ''; ?>>Rev</option>
+                                    <?php if($_SESSION['role'] == 'admin'): ?>
+                                        <option value="name" <?php echo $search_type == 'name' ? 'selected' : ''; ?>>Name</option>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <input type="text" name="search" class="form-control search-input" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search...">
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group">
+                                    <span class="input-group-text">From</span>
+                                    <input type="date" name="start_date" class="form-control date-input" value="<?php echo htmlspecialchars($start_date); ?>">
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group">
+                                    <span class="input-group-text">To</span>
+                                    <input type="date" name="end_date" class="form-control date-input" value="<?php echo htmlspecialchars($end_date); ?>">
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary search-button">Search</button>
+                            </div>
+                            <?php if(!empty($search) || !empty($start_date) || !empty($end_date)): ?>
+                            <div class="col-auto">
+                                <a href="pdf.php" class="btn btn-secondary clear-button">Clear</a>
+                            </div>
                             <?php endif; ?>
-                        </select>
-                        <input type="text" name="search" class="search-input" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search...">
-                        <button type="submit" class="search-button">Search</button>
-                        <?php if(!empty($search)): ?>
-                            <a href="pdf.php" class="search-button" style="background-color: #6c757d; text-decoration: none;">Clear</a>
-                        <?php endif; ?>
+                        </div>
                     </form>
                 </div>
 
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-md-12">
                         <button class="btn btn-danger" onclick="deleteAllPDF()">Delete All</button>
                         <a href="download_all_pdf.php" class="btn btn-success">Download All PDFs</a>
                     </div>
                 </div>
 
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped shadow">
                     <tr class="table-dark">
                         <th style="width: 25%">Bai No</th>
                         <th style="width: 25%">Rev</th>
@@ -232,8 +276,8 @@ $pdfs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <!-- 分页导航 -->
                 <div class="pagination">
                     <?php if($page > 1): ?>
-                        <a href="?page=1<?php echo !empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : ''; ?>">First</a>
-                        <a href="?page=<?php echo $page-1; ?><?php echo !empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : ''; ?>"> < </a>
+                        <a href="?page=1<?php echo buildPaginationParams($search, $search_type, $start_date, $end_date); ?>">First</a>
+                        <a href="?page=<?php echo $page-1; ?><?php echo buildPaginationParams($search, $search_type, $start_date, $end_date); ?>"> < </a>
                     <?php else: ?>
                         <span class="disabled">First</span>
                         <span class="disabled"> < </span>
@@ -247,7 +291,7 @@ $pdfs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             if($i == $page) {
                                 echo '<span class="active">' . $i . '</span>';
                             } else {
-                                echo '<a href="?page=' . $i . (!empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : '') . '">' . $i . '</a>';
+                                echo '<a href="?page=' . $i . buildPaginationParams($search, $search_type, $start_date, $end_date) . '">' . $i . '</a>';
                             }
                         }
                     } else {
@@ -258,42 +302,42 @@ $pdfs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 if($i == $page) {
                                     echo '<span class="active">' . $i . '</span>';
                                 } else {
-                                    echo '<a href="?page=' . $i . (!empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : '') . '">' . $i . '</a>';
+                                    echo '<a href="?page=' . $i . buildPaginationParams($search, $search_type, $start_date, $end_date) . '">' . $i . '</a>';
                                 }
                             }
                             echo '<span>...</span>';
-                            echo '<a href="?page=' . $total_pages . (!empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : '') . '">' . $total_pages . '</a>';
+                            echo '<a href="?page=' . $total_pages . buildPaginationParams($search, $search_type, $start_date, $end_date) . '">' . $total_pages . '</a>';
                         } elseif($page >= $total_pages - 1) {
                             // 当前页在最后两页
-                            echo '<a href="?page=1' . (!empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : '') . '">1</a>';
+                            echo '<a href="?page=1' . buildPaginationParams($search, $search_type, $start_date, $end_date) . '">1</a>';
                             echo '<span>...</span>';
                             for($i = $total_pages - 2; $i <= $total_pages; $i++) {
                                 if($i == $page) {
                                     echo '<span class="active">' . $i . '</span>';
                                 } else {
-                                    echo '<a href="?page=' . $i . (!empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : '') . '">' . $i . '</a>';
+                                    echo '<a href="?page=' . $i . buildPaginationParams($search, $search_type, $start_date, $end_date) . '">' . $i . '</a>';
                                 }
                             }
                         } else {
                             // 当前页在中间
-                            echo '<a href="?page=1' . (!empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : '') . '">1</a>';
+                            echo '<a href="?page=1' . buildPaginationParams($search, $search_type, $start_date, $end_date) . '">1</a>';
                             echo '<span>...</span>';
                             for($i = $page - 1; $i <= $page + 1; $i++) {
                                 if($i == $page) {
                                     echo '<span class="active">' . $i . '</span>';
                                 } else {
-                                    echo '<a href="?page=' . $i . (!empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : '') . '">' . $i . '</a>';
+                                    echo '<a href="?page=' . $i . buildPaginationParams($search, $search_type, $start_date, $end_date) . '">' . $i . '</a>';
                                 }
                             }
                             echo '<span>...</span>';
-                            echo '<a href="?page=' . $total_pages . (!empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : '') . '">' . $total_pages . '</a>';
+                            echo '<a href="?page=' . $total_pages . buildPaginationParams($search, $search_type, $start_date, $end_date) . '">' . $total_pages . '</a>';
                         }
                     }
                     ?>
 
                     <?php if($page < $total_pages): ?>
-                        <a href="?page=<?php echo $page+1; ?><?php echo !empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : ''; ?>"> > </a>
-                        <a href="?page=<?php echo $total_pages; ?><?php echo !empty($search) ? '&search='.urlencode($search).'&search_type='.$search_type : ''; ?>">Last</a>
+                        <a href="?page=<?php echo $page+1; ?><?php echo buildPaginationParams($search, $search_type, $start_date, $end_date); ?>"> > </a>
+                        <a href="?page=<?php echo $total_pages; ?><?php echo buildPaginationParams($search, $search_type, $start_date, $end_date); ?>">Last</a>
                     <?php else: ?>
                         <span class="disabled"> > </span>
                         <span class="disabled">Last</span>

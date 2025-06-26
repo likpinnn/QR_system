@@ -1,6 +1,13 @@
 <?php
 include_once 'db.php';
 
+// 处理标签页状态
+if(isset($_SESSION['active_tab'])) {
+    $active_tab = $_SESSION['active_tab'];
+    unset($_SESSION['active_tab']);
+} else {
+    $active_tab = 'continuity'; // 默认标签页
+}
 
 $report_sql = "SELECT * FROM `report`";
 $report_result = $conn->query($report_sql);
@@ -34,6 +41,11 @@ if(isset($_SESSION['display'])) {
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $_SESSION['display'] = 'block';
     $_SESSION['update_time'] = date('Y-m-d H:i:s');
+    
+    // 保存当前激活的标签页
+    if(isset($_POST['active_tab'])) {
+        $_SESSION['active_tab'] = $_POST['active_tab'];
+    }
 
     $action = $_POST['action'];
     $step = $_POST['step'];
@@ -103,6 +115,37 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         margin-top: 2rem;
         color: #0d6efd;
     }
+    .nav-tabs .nav-link {
+        color: #495057;
+        font-weight: 500;
+    }
+    .nav-tabs .nav-link.active {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+    .tab-content {
+        padding: 2rem 0;
+    }
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    .section-title {
+        color: #0d6efd;
+        margin: 0;
+    }
+    .section-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .total-steps {
+        font-size: 1.1rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
 </style>
 <?php 
     include_once 'header.php'; 
@@ -112,210 +155,250 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h1>Form Setting</h1>
+                <h1 class="mb-4 mt-2"><i class="fas fa-file-alt me-3"></i>Form Setting</h1>
                 <div class="alert alert-success" role="alert" id="success-alert" style="display: <?php echo $display; ?>">
                     <h4 class="alert-heading">Success</h4>
                     <p>The form has been updated successfully.</p>
                     <hr>
                     <p class="mb-0">Last updated: <?php echo $update_time; ?></p>
                 </div>
+                
                 <form action="form.php" method="post">
-                    <h4 class="step-title">Continuity Checks
-                        <span class="ms-3">
-                            <button class="btn btn-primary" type="button" onclick="add_step('a', <?php echo $total_a + 1; ?>)" title="Add step">
-                                + Add Step
-                            </button>
-                            <button class="btn btn-danger" type="button" onclick="delete_step('a', <?php echo $total_a; ?>)" title="Delete step">
-                                - Delete Step
-                            </button>
-
-                            <label class="ms-3" style="font-size: 1.2rem; color:rgb(149, 156, 162);">Total Step: <?php echo $total_a; ?></label>
-                        </span>
-
-                    </h4>
+                    <!-- 隐藏字段用于保存当前标签页 -->
+                    <input type="hidden" name="active_tab" id="active_tab_input" value="<?php echo $active_tab; ?>">
                     
-                    <?php for($i=1; $i<=$total_a; $i++){?>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5>Step <?php echo $i;?></h5>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <button class="btn" type="button" id="add-row<?=$i?>" title="Add Row">
-                                <i class="fa-solid fa-plus"></i>
+                    <!-- 标签页导航 -->
+                    <ul class="nav nav-tabs" id="formTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link <?php echo ($active_tab == 'continuity') ? 'active' : ''; ?>" id="continuity-tab" data-bs-toggle="tab" data-bs-target="#continuity" type="button" role="tab" aria-controls="continuity" aria-selected="<?php echo ($active_tab == 'continuity') ? 'true' : 'false'; ?>">
+                                <i class="fa-solid fa-check-circle me-2"></i>Continuity Checks
                             </button>
-                        </div>
-                    </div>
-                    <table class="table table-bordered table-striped">
-                        <?php foreach ($report_data as $report) { 
-                            if($report['step'] == $i && $report['type'] == 'a') {
-                        ?>
-                            <tr>
-                                <td class="w-50">
-                                    <input class="form-control" type="text" name="action[]" value="<?php echo $report['action']; ?>">
-                                    <input class="form-control" type="number" name="step[]" value="<?=$i?>" hidden>
-                                    <input class="form-control" type="text" name="type[]" value="a" hidden>
-                                </td>
-                                <td class="w-50">
-                                    <div class="input-group">
-                                        <input class="form-control" type="text" name="spec[]" value="<?php echo $report['spec']; ?>">
-                                        <span class="input-group-text" id="basic-addon2">Ohm</span>
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn text-danger fs-5" type="button"  onclick="del_data(<?=$report['id']?>)" title="Delete Row">
-                                        <i class="fa-solid fa-trash"></i>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link <?php echo ($active_tab == 'verification') ? 'active' : ''; ?>" id="verification-tab" data-bs-toggle="tab" data-bs-target="#verification" type="button" role="tab" aria-controls="verification" aria-selected="<?php echo ($active_tab == 'verification') ? 'true' : 'false'; ?>">
+                                <i class="fa-solid fa-clipboard-check me-2"></i>Final Verification
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link <?php echo ($active_tab == 'revision') ? 'active' : ''; ?>" id="revision-tab" data-bs-toggle="tab" data-bs-target="#revision" type="button" role="tab" aria-controls="revision" aria-selected="<?php echo ($active_tab == 'revision') ? 'true' : 'false'; ?>">
+                                <i class="fa-solid fa-history me-2"></i>Revision History
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- 标签页内容 -->
+                    <div class="tab-content" id="formTabsContent">
+                        <!-- Continuity Checks 标签页 -->
+                        <div class="tab-pane fade <?php echo ($active_tab == 'continuity') ? 'show active' : ''; ?>" id="continuity" role="tabpanel" aria-labelledby="continuity-tab">
+                            <div class="section-header">
+                                <div class="section-controls">
+                                    <button class="btn btn-primary" type="button" onclick="add_step('a', <?php echo $total_a + 1; ?>)" title="Add step">
+                                        <i class="fa-solid fa-plus me-1"></i>Add Step
                                     </button>
-                                </td>
-                            </tr>
-                            
-                        <?php } }?>
-                        <tr id="new_row<?=$i?>" style="display: none;">
-                            <td class="w-50">
-                                <input class="form-control" type="text" name="action[]" placeholder="Action">
-                                <input class="form-control" type="number" name="step[]" value="<?=$i?>" hidden>
-                                <input class="form-control" type="text" name="type[]" value="a" hidden>
-                            </td>
-                            <td class="w-50">
-                                <div class="input-group">
-                                    <input class="form-control" type="text" name="spec[]" placeholder="Spec (example: '< 10' or '> 10')">
-                                    <span class="input-group-text" id="basic-addon2">Ohm</span>
+                                    <button class="btn btn-danger" type="button" onclick="delete_step('a', <?php echo $total_a; ?>)" title="Delete step">
+                                        <i class="fa-solid fa-minus me-1"></i>Delete Step
+                                    </button>
+                                    <span class="total-steps">Total Steps: <?php echo $total_a; ?></span>
                                 </div>
-                            </td>
-                            <td class="text-center fs-5">
-                                <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
-                                    <i class="fa-solid fa-minus mt-2"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        
-                    </table>
-                    <?php }?>
-                    
-                    <h4 class="step-title">Final Verification
-                        <span class="ms-3">
-                            <button class="btn btn-primary" type="button" onclick="add_step('b', <?php echo $total_b + 1; ?>)" title="Add step">
-                                + Add Step
-                            </button>
-                            <button class="btn btn-danger" type="button" onclick="delete_step('b', <?php echo $total_b; ?>)" title="Delete step">
-                                - Delete Step
-                                </button>
-
-                            <label class="ms-3" style="font-size: 1.2rem; color:rgb(149, 156, 162);">Total Step: <?php echo $total_b; ?></label>
-                        </span>
-                    </h4>
-                    <?php for($i=1; $i<=$total_b; $i++){?>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5>Step <?php echo $i+$total_a;?></h5>
+                            </div>
+                            
+                            <?php for($i=1; $i<=$total_a; $i++){?>
+                            <div class="card mb-4 shadow">
+                                <div class="card-header d-flex justify-content-between align-items-center bg-dark text-white">
+                                    <h5 class="mb-0">Step <?php echo $i;?></h5>
+                                    <button class="btn btn-light btn-sm" type="button" id="add-row<?=$i?>" title="Add Row">
+                                        <i class="fa-solid fa-plus"></i> Add Row
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered table-striped">
+                                        <?php foreach ($report_data as $report) { 
+                                            if($report['step'] == $i && $report['type'] == 'a') {
+                                        ?>
+                                            <tr>
+                                                <td class="w-50">
+                                                    <input class="form-control" type="text" name="action[]" value="<?php echo $report['action']; ?>" placeholder="Action">
+                                                    <input class="form-control" type="number" name="step[]" value="<?=$i?>" hidden>
+                                                    <input class="form-control" type="text" name="type[]" value="a" hidden>
+                                                </td>
+                                                <td class="w-50">
+                                                    <div class="input-group">
+                                                        <input class="form-control" type="text" name="spec[]" value="<?php echo $report['spec']; ?>" placeholder="Spec (example: '< 10' or '> 10')">
+                                                        <span class="input-group-text" id="basic-addon2">Ohm</span>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center" style="width: 80px;">
+                                                    <button class="btn text-danger" type="button" onclick="del_data(<?=$report['id']?>)" title="Delete Row">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        <?php } }?>
+                                        <tr id="new_row<?=$i?>" style="display: none;">
+                                            <td class="w-50">
+                                                <input class="form-control" type="text" name="action[]" placeholder="Action">
+                                                <input class="form-control" type="number" name="step[]" value="<?=$i?>" hidden>
+                                                <input class="form-control" type="text" name="type[]" value="a" hidden>
+                                            </td>
+                                            <td class="w-50">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" name="spec[]" placeholder="Spec (example: '< 10' or '> 10')">
+                                                    <span class="input-group-text" id="basic-addon2">Ohm</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center" style="width: 80px;">
+                                                <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
+                                                    <i class="fa-solid fa-minus"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <?php }?>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <button class="btn" type="button" id="add-row<?=$i+$total_a?>" title="Add Row">
-                                <i class="fa-solid fa-plus"></i>
-                            </button>
+
+                        <!-- Final Verification 标签页 -->
+                        <div class="tab-pane fade <?php echo ($active_tab == 'verification') ? 'show active' : ''; ?>" id="verification" role="tabpanel" aria-labelledby="verification-tab">
+                            <div class="section-header">
+                                <div class="section-controls">
+                                    <button class="btn btn-primary" type="button" onclick="add_step('b', <?php echo $total_b + 1; ?>)" title="Add step">
+                                        <i class="fa-solid fa-plus me-1"></i>Add Step
+                                    </button>
+                                    <button class="btn btn-danger" type="button" onclick="delete_step('b', <?php echo $total_b; ?>)" title="Delete step">
+                                        <i class="fa-solid fa-minus me-1"></i>Delete Step
+                                    </button>
+                                    <span class="total-steps">Total Steps: <?php echo $total_b; ?></span>
+                                </div>
+                            </div>
+                            
+                            <?php for($i=1; $i<=$total_b; $i++){?>
+                            <div class="card mb-4">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Step <?php echo $i+$total_a;?></h5>
+                                    <button class="btn btn-outline-primary btn-sm" type="button" id="add-row<?=$i+$total_a?>" title="Add Row">
+                                        <i class="fa-solid fa-plus"></i> Add Row
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered table-striped">
+                                        <?php foreach ($report_data as $report) { 
+                                            if($report['step'] == $i && $report['type'] == 'b') {
+                                        ?>
+                                        <tr>
+                                            <td class="w-100">
+                                                <input class="form-control" type="text" name="action[]" value="<?php echo $report['action']; ?>"  placeholder="Action">
+                                                <input class="form-control" type="number" name="step[]" value="<?=$i?>" hidden>
+                                                <input class="form-control" type="text" value="NA" name="spec[]" hidden>
+                                                <input class="form-control" type="text" value="b" name="type[]" hidden>
+                                            </td>
+                                            <td class="text-center" style="width: 80px;">
+                                                <button class="btn text-danger" type="button" onclick="del_data(<?=$report['id']?>)" title="Delete Row">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <?php } }?>
+                                        <tr id="new_row<?=$i+$total_a?>" style="display: none;">
+                                            <td class="w-100">
+                                                <input class="form-control" type="text" name="action[]" placeholder="Action">
+                                                <input class="form-control" type="number" name="step[]" value="<?=$i?>" hidden>
+                                                <input class="form-control" type="text" value="NA" name="spec[]" hidden>
+                                                <input class="form-control" type="text" value="b" name="type[]" hidden>
+                                            </td>
+                                            <td class="text-center" style="width: 80px;">
+                                                <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
+                                                    <i class="fa-solid fa-minus"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <?php }?>
+                        </div>
+
+                        <!-- Revision History 标签页 -->
+                        <div class="tab-pane fade <?php echo ($active_tab == 'revision') ? 'show active' : ''; ?>" id="revision" role="tabpanel" aria-labelledby="revision-tab">
+                            <div class="section-header">
+                                <button class="btn btn-primary" type="button" id="add-rev" title="Add Row">
+                                    <i class="fa-solid fa-plus"></i> Add Row
+                                </button>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-body">
+                                    <table class="table table-bordered table-striped">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th style="width: 8%;">Rev</th>
+                                                <th style="width: 10%;">ECO</th>
+                                                <th style="width: 10%;">Date</th>
+                                                <th style="width: 55%;">Action</th>
+                                                <th style="width: 15%;">Author</th>
+                                                <th style="width: 2%;"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($revision_data as $revision) { ?>
+                                            <tr>
+                                                <td>
+                                                    <input class="form-control text-center" type="text" name="rev_revision[]" value="<?php echo $revision['Rev']; ?>">
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" type="text" name="eco_revision[]" value="<?php echo $revision['ECO']; ?>">
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" type="date" name="date_revision[]" value="<?php echo $revision['date']; ?>">
+                                                </td>
+                                                <td>
+                                                    <textarea class="form-control" name="action_revision[]" rows="3"><?php echo $revision['action']; ?></textarea>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" type="text" name="author_revision[]" value="<?php echo $revision['Author']; ?>">
+                                                </td>
+                                                <td class="text-center">
+                                                    <button class="btn text-danger" type="button" onclick="del_rev(<?=$revision['id']?>)" title="Delete Row">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <?php } ?>
+                                            <tr id="new_rev" style="display: none;">
+                                                <td>
+                                                    <input class="form-control text-center" type="text" name="rev_revision[]" placeholder="Rev">
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" type="text" name="eco_revision[]" placeholder="ECO">
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" type="date" name="date_revision[]" placeholder="Date">
+                                                </td>
+                                                <td>
+                                                    <textarea class="form-control" name="action_revision[]" rows="3" placeholder="Action"></textarea>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" type="text" name="author_revision[]" placeholder="Author">
+                                                </td>
+                                                <td class="text-center">
+                                                    <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
+                                                        <i class="fa-solid fa-minus"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <table class="table table-bordered table-striped">
-                        <?php foreach ($report_data as $report) { 
-                            if($report['step'] == $i && $report['type'] == 'b') {
-                        ?>
-                        <tr>
-                            <td class="w-100">
-                                <input class="form-control" type="text" name="action[]" value="<?php echo $report['action']; ?>">
-                                <input class="form-control" type="number" name="step[]" value="<?=$i?>" hidden>
-                                <input class="form-control" type="text" value="NA" name="spec[]" hidden>
-                                <input class="form-control" type="text" value="b" name="type[]" hidden>
-                            </td>
-                            <td class="text-center">
-                                <button class="btn text-danger fs-5" type="button"  onclick="del_data(<?=$report['id']?>)" title="Delete Row">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <?php } }?>
-                        <tr id="new_row<?=$i+$total_a?>" style="display: none;">
-                            <td class="w-100">
-                                <input class="form-control" type="text" name="action[]" placeholder="Action">
-                                <input class="form-control" type="number" name="step[]" value="<?=$i?>" hidden>
-                                <input class="form-control" type="text" value="NA" name="spec[]" hidden>
-                                <input class="form-control" type="text" value="b" name="type[]" hidden>
-                            </td>
-                            <td class="text-center fs-5">
-                                <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
-                                    <i class="fa-solid fa-minus mt-2"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    </table>
-                    <?php }?>
-
-                    <h2 class="step-title">Revision History</h2>
-                    <div class="row">
-                        <div class="col-md-12 text-end">
-                            <button class="btn" type="button" id="add-rev" title="Add Row">
-                                <i class="fa-solid fa-plus"></i>
-                            </button>
-                        </div>
+                    <!-- 提交按钮 -->
+                    <div>
+                        <button class="btn btn-success btn-lg w-100" type="submit" onclick="showSuccessAlert()">
+                            <i class="fa-solid fa-save me-2"></i>Update Form
+                        </button>
                     </div>
-                    <table class="table table-bordered table-striped">
-                        <tr>
-                            <th style="width: 8%;">Rev</th>
-                            <th style="width: 10%;">ECO</th>
-                            <th style="width: 10%;">Date</th>
-                            <th style="width: 55%;">Action</th>
-                            <th style="width: 15%;">Author</th>
-                            <th style="width: 2%;"></th>
-                        </tr>
-                        <?php foreach ($revision_data as $revision) { ?>
-                        <tr>
-                            <td>
-                                <input class="form-control text-center" type="text" name="rev_revision[]" value="<?php echo $revision['Rev']; ?>">
-                            </td>
-                            <td>
-                                <input class="form-control" type="text" name="eco_revision[]" value="<?php echo $revision['ECO']; ?>">
-                            </td>
-                            <td>
-                                <input class="form-control" type="date" name="date_revision[]" value="<?php echo $revision['date']; ?>">
-                            </td>
-                            <td>
-                                <textarea class="form-control" name="action_revision[]" rows="3"><?php echo $revision['action']; ?></textarea>
-                            </td>
-                            <td>
-                                <input class="form-control" type="text" name="author_revision[]" value="<?php echo $revision['Author']; ?>">
-                            </td>
-                            <td class="text-center">
-                                <button class="btn text-danger fs-5" type="button"  onclick="del_rev(<?=$revision['id']?>)" title="Delete Row">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <?php } ?>
-                        <tr id="new_rev" style="display: none;">
-                            <td>
-                                <input class="form-control text-center" type="text" name="rev_revision[]" placeholder="Rev">
-                            </td>
-                            <td>
-                                <input class="form-control" type="text" name="eco_revision[]" placeholder="ECO">
-                            </td>
-                            <td>
-                                <input class="form-control" type="date" name="date_revision[]" placeholder="Date">
-                            </td>
-                            <td>
-                                <textarea class="form-control" name="action_revision[]" rows="3" placeholder="Action"></textarea>
-                            </td>
-                            <td>
-                                <input class="form-control" type="text" name="author_revision[]" placeholder="Author">
-                            </td>
-                            <td class="text-center fs-5">
-                                <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
-                                    <i class="fa-solid fa-minus mt-2"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    </table>
-
-                    <button class="col-12 btn btn-success mt-2" type="submit" onclick="showSuccessAlert()">Update</button>
-
                 </form>            
             </div>
         </div>
@@ -365,7 +448,36 @@ document.addEventListener('DOMContentLoaded', function() {
         if(e.target.closest('.delete-row')) {
             e.target.closest('tr').remove();
         }
+    }); 
+
+    // 监听标签页切换事件
+    const tabElements = document.querySelectorAll('[data-bs-toggle="tab"]');
+    const activeTabInput = document.getElementById('active_tab_input');
+    
+    tabElements.forEach(function(tab) {
+        tab.addEventListener('shown.bs.tab', function(event) {
+            // 获取当前激活的标签页ID
+            const targetId = event.target.getAttribute('data-bs-target').substring(1);
+            // 更新隐藏字段的值
+            if(activeTabInput) {
+                activeTabInput.value = targetId;
+            }
+        });
     });
+
+    // Activate tab based on URL hash (保留原有功能)
+    var hash = window.location.hash;
+    if (hash) {
+        var tab = document.querySelector('.nav-link[data-bs-target="' + hash + '"]');
+        if (tab) {
+            var tabInstance = new bootstrap.Tab(tab);
+            tabInstance.show();
+            // 更新隐藏字段
+            if(activeTabInput) {
+                activeTabInput.value = hash.substring(1);
+            }
+        }
+    }
 });
 
 function del_rev(id) {
@@ -410,6 +522,8 @@ function delete_step(type, step) {
         xhttp.open("GET", "delete_step.php?type=" + type + "&step=" + step, true);
         xhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
+                var hash = (type === 'b') ? 'verification' : 'continuity';
+                window.location.hash = hash;
                 location.reload();
             }
         };
@@ -423,6 +537,8 @@ function add_step(type, step) {
         xhttp.open("GET", "add_step.php?type=" + type + "&step=" + step, true);
         xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
+                var hash = (type === 'b') ? 'verification' : 'continuity';
+                window.location.hash = hash;
                 location.reload();
             }
         };

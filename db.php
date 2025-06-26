@@ -21,13 +21,12 @@ $conn->exec('CREATE TABLE IF NOT EXISTS users (
 // report
 $conn->exec('CREATE TABLE IF NOT EXISTS report (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    `action` TEXT NOT NULL,
+    `action` TEXT,
     step TEXT NOT NULL,
     spec TEXT,
     `type` TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
-
 
 //revision history
 $conn->exec('CREATE TABLE IF NOT EXISTS revision_history (

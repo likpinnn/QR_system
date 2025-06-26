@@ -145,7 +145,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h1>Technical Information</h1>
+                <h1 class="mt-2 mb-4"><i class="fa-solid fa-list-ol me-2"></i>Technical Information</h1>
                 <div class="alert alert-success" role="alert" id="success-alert" style="display: <?php echo $serial_display; ?>">
                     <h4 class="alert-heading">Success</h4>
                     <p>The form has been updated successfully.</p>
@@ -167,6 +167,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </a>
                         </li>
                     </ul>
+
                     <div class="tab-content" id="myTabContent">
                         <div class="tab-pane fade <?php echo $active_tab === 'bai' ? 'show active' : ''; ?>" id="bai" role="tabpanel" aria-labelledby="bai-tab">
                             <div class="search-container">
@@ -178,7 +179,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             <div id="bai-results">
-                                <table class="table table-bordered table-striped">
+                                <table class="table table-bordered table-striped shadow">
                                     <tr class="table-dark">
                                         <th class="w-100">Bai No</th>
                                         <th></th>
@@ -274,7 +275,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             <div id="rev-results">
-                                <table class="table table-bordered table-striped">
+                                <table class="table table-bordered table-striped shadow">
                                     <tr class="table-dark">
                                         <th class="w-100">Rev</th>
                                         <th></th>

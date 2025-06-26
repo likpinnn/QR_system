@@ -7,31 +7,31 @@ include_once('db.php');
 
 
 // 处理logo
-if (isset($_FILES['logo'])) {
+if (isset($_FILES['logo']) && $_FILES['logo']['error'] !== UPLOAD_ERR_NO_FILE) {
         // 检查上传错误
         if ($_FILES['logo']['error'] !== UPLOAD_ERR_OK) {
-            die('Logo upload error: ' . $_FILES['logo']['error']);
-        }
+            // 不要因为文件上传错误而终止程序，只是记录错误
+            error_log('Logo upload error: ' . $_FILES['logo']['error']);
+        } else {
+            // 确保目录存在
+            $logo_dir = 'assets/img';
+            if (!file_exists($logo_dir)) {
+                if (!mkdir($logo_dir, 0777, true)) {
+                    error_log('Failed to create logo directory');
+                }
+            }
 
-        // 确保目录存在
-        $logo_dir = 'assets/img';
-        if (!file_exists($logo_dir)) {
-            if (!mkdir($logo_dir, 0777, true)) {
-                die('Failed to create logo directory');
+            // 获取文件信息
+            $file = $_FILES['logo'];
+            
+            $filename = $_SESSION['username'] . '.png';
+            $filepath = $logo_dir . '/' . $filename;
+
+            // 移动文件
+            if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+                error_log('Failed to save logo file. Error: ' . error_get_last()['message']);
             }
         }
-
-        // 获取文件信息
-        $file = $_FILES['logo'];
-        
-        $filename = $_SESSION['username'] . '.png';
-        $filepath = $logo_dir . '/' . $filename;
-
-        // 移动文件
-        if (!move_uploaded_file($file['tmp_name'], $filepath)) {
-            die('Failed to save logo file. Error: ' . error_get_last()['message']);
-        }
-    
 }
 
 
@@ -263,7 +263,7 @@ $date = $_POST['date'];
                         <table class="table table-bordered border-dark">
                             <tr class="row text-center border-dark border-2 border">
                                 <td class="col-md-3">
-                                    <img id="logoPreview" src="<?php echo $logo; ?>" alt="Logo" style="max-height: 40px; max-width: 100%; cursor: pointer;" onclick="document.getElementById('logoInput').click()">
+                                    <img id="logoPreview" src="<?php echo $logo; ?>?t=<?php echo time(); ?>" alt="Logo" style="max-height: 40px; max-width: 100%; cursor: pointer;" onclick="document.getElementById('logoInput').click()">
                                     <input type="file" id="logoInput" accept="image/*" style="display: none;">
                                 </td>
                                 <td class="col-md-6">
@@ -600,7 +600,7 @@ $date = $_POST['date'];
                                     <table>
                                         <tr>
                                             <td class="col-md-10 text-center">
-                                                <img src="<?=$sign?>" alt="Signature" style="max-width: 30%; max-height: auto;">
+                                                <img src="<?=$sign?>?t=<?php echo time(); ?>" alt="Signature" style="max-width: 30%; max-height: auto;">
                                             </td>
                                             <td class="col-md-2 align-middle text-center">
                                                 <?php echo $date;?>

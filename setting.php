@@ -38,8 +38,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h1 class="mb-5">Setting</h1>
-                <h4>Reset Password</h4>
+                <h1 class="mb-4 mt-2"><i class="fa-solid fa-gear me-2"></i>Setting</h1>
                 <?php if(isset($_SESSION['success'])){?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         <?php echo $_SESSION['success']; ?>
@@ -56,17 +55,22 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                     unset($_SESSION['error']);
                 } ?>
                 
-                <div class="card">
+                <div class="card shadow">
                     <div class="card-body">
+                        <h4><i class="fa-solid fa-key me-2"></i>Reset Password</h4>
                         <form action="" method="post">
                             <div class="row">
                                 <div class="col-md-12 mb-3">
-                                    <label for="new_password" class="form-label">New Password</label>
-                                    <input type="password" class="form-control" id="new_password" name="new_password" placeholder="New Password">
+                                    <div class="form-group">
+                                        <label for="new_password">New Password</label>
+                                        <input type="password" class="form-control" id="new_password" name="new_password" placeholder="New Password">
+                                    </div>
                                 </div>
                                 <div class="col-md-12 mb-3">
-                                    <label for="confirm_password" class="form-label">Confirm Password</label>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
+                                    <div class="form-group">
+                                        <label for="confirm_password">Confirm Password</label>
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
+                                    </div>
                                 </div>
                                 <div class="col-md-12  text-end">
                                     <button type="submit" class="btn btn-primary">Reset</button>
@@ -75,8 +79,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                            
                         </form>
                     </div>
-                </div>
-                
+                </div>              
             </div>
         </div>
     </div>

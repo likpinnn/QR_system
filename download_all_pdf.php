@@ -36,8 +36,8 @@ $files = new RecursiveIteratorIterator(
 foreach ($files as $name => $file) {
     if (!$file->isDir()) {
         $filePath = $file->getRealPath();
-        $relativePath = substr($filePath, strlen($temp_dir) + 1);
-        $zip->addFile($filePath, $relativePath);
+        $filename = basename($filePath); // 只用文件名
+        $zip->addFile($filePath, $filename);
     }
 }
 
@@ -48,11 +48,14 @@ header('Content-Type: application/zip');
 header('Content-Disposition: attachment; filename="' . $zipname . '"');
 header('Content-Length: ' . filesize($zipname));
 
+// 清理输出缓冲，防止多余内容
+ob_clean();
+flush();
+
 // 输出文件
 readfile($zipname);
 
 // 清理临时文件和目录
 unlink($zipname);
 array_map('unlink', glob("$temp_dir/*.*"));
-rmdir($temp_dir);
-?> 
+rmdir($temp_dir); 

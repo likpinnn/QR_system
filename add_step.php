@@ -7,12 +7,10 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['type']) && isset($_GET['step'])) {
         $type = $_GET['type'];
         $step = $_GET['step'];
-        $action = ''; // 添加默认的空 action
 
-        $stmt = $conn->prepare("INSERT INTO report (step, type, action) VALUES (:step, :type, :action)");
+        $stmt = $conn->prepare("INSERT INTO report (step, type) VALUES (:step, :type)");
         $stmt->bindParam(':step', $step);
         $stmt->bindParam(':type', $type);
-        $stmt->bindParam(':action', $action);
         $result = $stmt->execute();
 
         if ($result) {

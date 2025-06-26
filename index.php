@@ -124,6 +124,79 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 2rem;
             color: #0d6efd;
         }
+        
+        /* 卡片样式 */
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .form-card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .form-card-header {
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        .form-card-title {
+            color: #0d6efd;
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .form-card-body {
+            padding: 0;
+        }
+        
+        /* 子步骤卡片样式 */
+        .sub-step-card {
+            background:rgb(255, 255, 255);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .sub-step-card.active {
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-color: #0d6efd;
+        }
+        
+        /* 表格卡片样式 */
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+        }
+        .table-card .table {
+            margin-bottom: 0;
+        }
+        .table-card .table th {
+            background-color: #f8f9fa;
+            border-color: #e9ecef;
+            font-weight: 600;
+        }
+        
+        /* 签名卡片样式 */
+        .signature-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+        }
+        
         /* 添加签名画板样式 */
         .signature-pad {
             border: 1px solid #ccc;
@@ -225,6 +298,30 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
             font-size: 0.875rem;
             font-weight: normal;
         }
+        
+        /* 导航按钮卡片样式 */
+        .navigation-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid #e9ecef;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+            .sub-step-card {
+                padding: 1rem;
+            }
+            .table-card {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <?php 
@@ -241,7 +338,7 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="row" style="margin-bottom: 100px;">
             <div class="col-md-12">
-                <h1>Add New Report</h1>
+                <h1><i class="fa-solid fa-file me-3"></i>Add New Report</h1>
             </div>
             <div id="add-report" class="mt-4">
                 <!-- 主步骤进度条 -->
@@ -261,272 +358,299 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
                 <form action="result.php" method="post" enctype="multipart/form-data">
                     <!-- Step 1: Technical Information -->
                     <div class="main-step active" data-step="1">
-                        <h2 class="step-title">Technical Information</h2>
-                        <div class="form-group mb-4">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <label for="logo" class="form-label">Logo</label>
-                                    <div class="logo-upload-container" id="drop-zone">
-                                        <div class="logo-upload-icon">
-                                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <div class="form-card">
+                            <div class="form-card-header">
+                                <h2 class="form-card-title"><i class="fa-solid fa-cogs me-2"></i>Technical Information</h2>
+                            </div>
+                            <div class="form-card-body">
+                                <div class="form-group mb-4">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="logo" class="form-label">Logo</label>
+                                            <div class="logo-upload-container" id="drop-zone">
+                                                <div class="logo-upload-icon">
+                                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                                </div>
+                                                <div class="logo-upload-text">
+                                                    <p>Drag and drop your logo here<br>or</p>
+                                                </div>
+                                                <label for="logo" class="custom-file-upload">
+                                                    <i class="fa-solid fa-upload me-2"></i>Choose File
+                                                </label>
+                                                <input type="file" class="form-control" id="logo" name="logo" accept="image/*" required>
+                                                <input type="hidden" id="existing_logo" name="existing_logo" value="">
+                                                <script>
+                                                    <?php
+                                                    $session_dir = 'assets/img/' . $_SESSION['username'] . '.png';
+                                                    if (file_exists($session_dir)) {
+                                                        echo "document.getElementById('existing_logo').value = '" . $session_dir . "';";
+                                                        echo "document.getElementById('logo').required = false;";
+                                                    }
+                                                    ?>
+                                                </script>
+                                            </div>
                                         </div>
-                                        <div class="logo-upload-text">
-                                            <p>Drag and drop your logo here<br>or</p>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Preview</label>
+                                            <div class="logo-preview-container" id="logo-preview">
+                                                <?php
+                                                $session_dir = 'assets/img/' . $_SESSION['username'] . '.png';
+                                                if (file_exists($session_dir)) {
+                                                    echo '<img src="' . $session_dir . '" alt="Logo Preview" style="max-width: 100%; max-height: 200px;">';
+                                                } else {
+                                                    echo '<div class="text-muted">Preview will appear here</div>';
+                                                }
+                                                ?>
+                                            </div>
                                         </div>
-                                        <label for="logo" class="custom-file-upload">
-                                            <i class="fa-solid fa-upload me-2"></i>Choose File
-                                        </label>
-                                        <input type="file" class="form-control" id="logo" name="logo" accept="image/*" required>
-                                        <input type="hidden" id="existing_logo" name="existing_logo" value="">
-                                        <script>
-                                            <?php
-                                            $session_dir = 'assets/img/' . $_SESSION['username'] . '.png';
-                                            if (file_exists($session_dir)) {
-                                                echo "document.getElementById('existing_logo').value = '" . $session_dir . "';";
-                                                echo "document.getElementById('logo').required = false;";
-                                            }
-                                            ?>
-                                        </script>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Preview</label>
-                                    <div class="logo-preview-container" id="logo-preview">
-                                        <?php
-                                        $session_dir = 'assets/img/' . $_SESSION['username'] . '.png';
-                                        if (file_exists($session_dir)) {
-                                            echo '<img src="' . $session_dir . '" alt="Logo Preview" style="max-width: 100%; max-height: 200px;">';
-                                        } else {
-                                            echo '<div class="text-muted">Preview will appear here</div>';
-                                        }
-                                        ?>
+                                <label for="">Report Name</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-4">
+                                            <label for="report-name">Title 1</label>     
+                                            <input type="text" class="form-control" id="report-name" name="report-name1" value="Quality Report," placeholder="Title 1" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-4">
+                                            <label for="report-name">Title 2</label>     
+                                            <input type="text" class="form-control" id="report-name2" name="report-name2" value="ASSY, PCB, XPS CARRIAGE" placeholder="Title 2" required>  
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="tools">Tools</label>
+                                    <input type="text" class="form-control" id="tools" name="tools" value="Multimeter" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="reference-document">Reference document</label>
+                                    <input type="text" class="form-control" id="reference-document" name="reference-document" value="332949-SX - SCHEMATIC, PCB, XPS CARRIAGE" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="bai_no">Brooks P/N & Revsion</label>
+                                    
+                                    <select name="bai_no" id="bai_no" class="form-control">
+                                        <option value="">Select Brooks P/N</option>
+                                        <?php foreach ($bai_data as $bai) { ?>
+                                            <option value="<?php echo $bai['bai_no']; ?>"><?php echo $bai['bai_no']; ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="rev">REV</label>
+                                    <select name="rev" id="rev" class="form-control">
+                                        <option value="">Select Brooks REV</option>
+                                        <?php foreach ($rev_data as $rev) { ?>
+                                            <option value="<?php echo $rev['rev']; ?>"><?php echo $rev['rev']; ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="serial-number">Brooks' Serial Number</label>
+                                    <input type="text" class="form-control" id="serial-number" name="serial-number" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="date-completed">Date Completed</label>
+                                    <input type="date" class="form-control" id="date-completed" name="date-completed" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label>Carriage PCB</label><br>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="pcb-part-number">Brooks Part Number</label>
+                                            <input type="text" class="form-control" id="pcb-part-number" name="pcb-part-number" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="pcb-serial-number">Supplier Serial Number</label>
+                                            <input type="text" class="form-control" id="pcb-serial-number" name="pcb-serial-number" required>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <label for="">Report Name</label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-4">
-                                    <label for="report-name">Title 1</label>     
-                                    <input type="text" class="  form-control" id="report-name" name="report-name1" value="Quality Report," placeholder="Title 1" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-4">
-                                    <label for="report-name">Title 2</label>     
-                                    <input type="text" class="form-control" id="report-name2" name="report-name2" value="ASSY, PCB, XPS CARRIAGE" placeholder="Title 2" required>  
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="tools">Tools</label>
-                            <input type="text" class="form-control" id="tools" name="tools" value="Multimeter" required>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="reference-document">Reference document</label>
-                            <input type="text" class="form-control" id="reference-document" name="reference-document" value="332949-SX - SCHEMATIC, PCB, XPS CARRIAGE" required>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="bai_no">Brooks P/N & Revsion</label>
-                            
-                            <select name="bai_no" id="bai_no" class="form-control">
-                                <option value="">Select Brooks P/N</option>
-                                <?php foreach ($bai_data as $bai) { ?>
-                                    <option value="<?php echo $bai['bai_no']; ?>"><?php echo $bai['bai_no']; ?></option>
-                                <?php } ?>
-                            </select>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="rev">REV</label>
-                            <select name="rev" id="rev" class="form-control">
-                                <option value="">Select Brooks REV</option>
-                                <?php foreach ($rev_data as $rev) { ?>
-                                    <option value="<?php echo $rev['rev']; ?>"><?php echo $rev['rev']; ?></option>
-                                <?php } ?>
-                            </select>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="serial-number">Brooks' Serial Number</label>
-                            <input type="text" class="form-control" id="serial-number" name="serial-number" required>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="date-completed">Date Completed</label>
-                            <input type="date" class="form-control" id="date-completed" name="date-completed" required>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label>Carriage PCB</label><br>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <label for="pcb-part-number">Brooks Part Number</label>
-                                    <input type="text" class="form-control" id="pcb-part-number" name="pcb-part-number" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="pcb-serial-number">Supplier Serial Number</label>
-                                    <input type="text" class="form-control" id="pcb-serial-number" name="pcb-serial-number" required>
-                                </div>
-                            </div>
-                        </div>
-                        
-
                     </div>
                     <!-- Step 2: Continuity Checks -->
                     <div class="main-step" data-step="2">
-                        <h2 class="step-title">Continuity Checks</h2>
-                        
-                        <!-- 子步骤指示器 -->
-                        <div class="sub-step-indicator">
-                            <?php for($i=1; $i<=$total_a; $i++){?>
-                                <div class="sub-step-dot<?php echo $i==1 ? ' active' : ''; ?>" data-sub-step="<?php echo $i; ?>">
-                                    <?php echo $i; ?>
+                        <div class="form-card">
+                            <div class="form-card-header">
+                                <h2 class="form-card-title"><i class="fa-solid fa-check-circle me-2"></i>Continuity Checks</h2>
+                            </div>
+                            <div class="form-card-body">
+                                <!-- 子步骤指示器 -->
+                                <div class="sub-step-indicator">
+                                    <?php for($i=1; $i<=$total_a; $i++){?>
+                                        <div class="sub-step-dot<?php echo $i==1 ? ' active' : ''; ?>" data-sub-step="<?php echo $i; ?>">
+                                            <?php echo $i; ?>
+                                        </div>
+                                    <?php }?>
                                 </div>
-                            <?php }?>
-                        </div>
 
-                        <!-- 子步骤内容 -->
-                        <?php for($i=1; $i<=$total_a; $i++){?>
-                            <div class="sub-step<?php echo $i==1 ? ' active' : ''; ?>" data-sub-step="<?php echo $i; ?>">
-                                <h3 class="mb-3">Step <?php echo $i; ?></h3>
-                                <?php foreach ($report_data as $report) { 
-                                    if($report['step'] == $i && $report['type'] == 'a') {
-                                ?>
-                                    <div class="form-group mb-4">
-                                        <label><?php echo $report['action']; ?></label>
-                                        <div class="input-group">
-                                            <input type="number" class="form-control" name="step<?php echo $i; ?>[]" required autocomplete="off">
-                                            <input type="text" id="spec" value="<?php echo $report['spec']; ?>" hidden>
-                                            <span class="input-group-text" id="basic-addon2">Ohm</span>
+                                <!-- 子步骤内容 -->
+                                <?php for($i=1; $i<=$total_a; $i++){?>
+                                    <div class="sub-step<?php echo $i==1 ? ' active' : ''; ?>" data-sub-step="<?php echo $i; ?>">
+                                        <div class="sub-step-card shadow">
+                                            <h3 class="mb-3">Step <?php echo $i; ?></h3>
+                                            <?php foreach ($report_data as $report) { 
+                                                if($report['step'] == $i && $report['type'] == 'a') {
+                                            ?>
+                                                <div class="form-group mb-4">
+                                                    <label><?php echo $report['action']; ?></label>
+                                                    <div class="input-group">
+                                                        <input type="number" class="form-control" name="step<?php echo $i; ?>[]" required autocomplete="off">
+                                                        <input type="text" id="spec" value="<?php echo $report['spec']; ?>" hidden>
+                                                        <span class="input-group-text" id="basic-addon2">Ohm</span>
+                                                    </div>
+                                                </div>
+                                            <?php } }?>
                                         </div>
                                     </div>
-                                <?php } }?>
+                                <?php }?>
                             </div>
-                        <?php }?>
+                        </div>
                     </div>
 
                     <!-- Step 3: Final Verification -->
                     <div class="main-step" data-step="3">
-                        <h2 class="step-title">Final Verification</h2>
-                        
-                        <!-- 子步骤指示器 -->
-                        <div class="sub-step-indicator">
-                            <?php for($i=1; $i<=$total_b; $i++){?>
-                                <div class="sub-step-dot<?php echo $i==1 ? ' active' : ''; ?>" data-sub-step="<?php echo $i+$total_a; ?>">
-                                    <?php echo $i+$total_a; ?>
-                                </div>
-                            <?php }?>
-                        </div>
-
-                        <!-- 子步骤内容 -->
-                        <?php for($i=1; $i<=$total_b; $i++){?>
-                            <div class="sub-step<?php echo $i==1 ? ' active' : ''; ?>" data-sub-step="<?php echo $i+$total_a; ?>">
-                                <h3 class="mb-3">Step <?php echo $i+$total_a; ?></h3>
-                                <?php foreach ($report_data as $report) { 
-                                    if($report['step'] == $i && $report['type'] == 'b') {
-                                ?>
-                                    <div class="form-group mb-4">
-                                        <label><?php echo $report['action']; ?></label>
-                                        <select name="step<?php echo $i+$total_a; ?>[]" id="step<?php echo $i+$total_a; ?>" class="form-control">
-                                            <option value="Pass">Pass</option>
-                                            <option value="Fail">Fail</option>
-                                        </select>
-                                    </div>
-                                <?php } }?>
+                        <div class="form-card">
+                            <div class="form-card-header">
+                                <h2 class="form-card-title"><i class="fa-solid fa-clipboard-check me-2"></i>Final Verification</h2>
                             </div>
-                        <?php }?>
+                            <div class="form-card-body">
+                                <!-- 子步骤指示器 -->
+                                <div class="sub-step-indicator">
+                                    <?php for($i=1; $i<=$total_b; $i++){?>
+                                        <div class="sub-step-dot<?php echo $i==1 ? ' active' : ''; ?>" data-sub-step="<?php echo $i+$total_a; ?>">
+                                            <?php echo $i+$total_a; ?>
+                                        </div>
+                                    <?php }?>
+                                </div>
+
+                                <!-- 子步骤内容 -->
+                                <?php for($i=1; $i<=$total_b; $i++){?>
+                                    <div class="sub-step<?php echo $i==1 ? ' active' : ''; ?>" data-sub-step="<?php echo $i+$total_a; ?>">
+                                        <div class="sub-step-card shadow">
+                                            <h3 class="mb-3">Step <?php echo $i+$total_a; ?></h3>
+                                            <?php foreach ($report_data as $report) { 
+                                                if($report['step'] == $i && $report['type'] == 'b') {
+                                            ?>
+                                                <div class="form-group mb-4">
+                                                    <label><?php echo $report['action']; ?></label>
+                                                    <select name="step<?php echo $i+$total_a; ?>[]" id="step<?php echo $i+$total_a; ?>" class="form-control">
+                                                        <option value="Pass">Pass</option>
+                                                        <option value="Fail">Fail</option>
+                                                    </select>
+                                                </div>
+                                            <?php } }?>
+                                        </div>
+                                    </div>
+                                <?php }?>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Step 4: Revision History -->
                     <div class="main-step" data-step="4">
-                        <h2 class="step-title">Revision History</h2>
-                        <table class="table table-bordered table-striped">
-                            <tr>
-                                <th style="width: 10%;">Rev</th>
-                                <th style="width: 10%;">ECO</th>
-                                <th style="width: 10%;">Date</th>
-                                <th style="width: 55%;">Action</th>
-                                <th style="width: 15%;">Author</th>
-                            </tr>
-                            <?php foreach ($revision_data as $revision) { ?>
-                            <tr>
-                                <td>
-                                    <?php echo $revision['Rev']; ?>
-                                </td>
-                                <td>
-                                    <?php echo $revision['ECO']; ?>
-                                </td>
-                                <td>
-                                    <?php echo $revision['date']; ?>
-                                </td>
-                                <td>
-                                    <?php echo $revision['action']; ?>
-                                </td>
-                                <td>
-                                    <?php echo $revision['Author']; ?>
-                                </td>
-                            </tr>
-                            <?php } ?>
-                            <tr id="new_rev" style="display: none;">
-                                <td>
-                                    <input class="form-control text-center" type="text" name="rev_revision[]" placeholder="Rev">
-                                </td>
-                                <td>
-                                    <input class="form-control" type="text" name="eco_revision[]" placeholder="ECO">
-                                </td>
-                                <td>
-                                    <input class="form-control" type="date" name="date_revision[]" placeholder="Date">
-                                </td>
-                                <td>
-                                    <textarea class="form-control" name="action_revision[]" rows="3" placeholder="Action"></textarea>
-                                </td>
-                                <td>
-                                    <input class="form-control" type="text" name="author_revision[]" placeholder="Author">
-                                </td>
-                                <td class="text-center fs-5">
-                                    <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
-                                        <i class="fa-solid fa-minus mt-2"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        </table>
+                        <div class="form-card">
+                            <div class="form-card-header">
+                                <h2 class="form-card-title"><i class="fa-solid fa-history me-2"></i>Revision History</h2>
+                            </div>
+                            <div class="form-card-body">
+                                <table class="table table-bordered table-striped">
+                                    <tr>
+                                        <th style="width: 10%;">Rev</th>
+                                        <th style="width: 10%;">ECO</th>
+                                        <th style="width: 10%;">Date</th>
+                                        <th style="width: 55%;">Action</th>
+                                        <th style="width: 15%;">Author</th>
+                                    </tr>
+                                    <?php foreach ($revision_data as $revision) { ?>
+                                    <tr>
+                                        <td>
+                                            <?php echo $revision['Rev']; ?>
+                                        </td>
+                                        <td>
+                                            <?php echo $revision['ECO']; ?>
+                                        </td>
+                                        <td>
+                                            <?php echo $revision['date']; ?>
+                                        </td>
+                                        <td>
+                                            <?php echo $revision['action']; ?>
+                                        </td>
+                                        <td>
+                                            <?php echo $revision['Author']; ?>
+                                        </td>
+                                    </tr>
+                                    <?php } ?>
+                                    <tr id="new_rev" style="display: none;">
+                                        <td>
+                                            <input class="form-control text-center" type="text" name="rev_revision[]" placeholder="Rev">
+                                        </td>
+                                        <td>
+                                            <input class="form-control" type="text" name="eco_revision[]" placeholder="ECO">
+                                        </td>
+                                        <td>
+                                            <input class="form-control" type="date" name="date_revision[]" placeholder="Date">
+                                        </td>
+                                        <td>
+                                            <textarea class="form-control" name="action_revision[]" rows="3" placeholder="Action"></textarea>
+                                        </td>
+                                        <td>
+                                            <input class="form-control" type="text" name="author_revision[]" placeholder="Author">
+                                        </td>
+                                        <td class="text-center fs-5">
+                                            <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
+                                                <i class="fa-solid fa-minus mt-2"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Step 5: Completion signature -->
                     <div class="main-step" data-step="5">
-                        <h2 class="step-title">Completion</h2>
-                        
-                        <div class="form-group mb-4">
-                            <label for="name">Name</label>
-                            <input type="text" class="form-control" id="name" name="name" value="<?php echo $_SESSION['name']; ?>" required>
-                        </div>
-                        
-                        <div class="form-group mb-4">
-                            <label>Completion signature</label>
-                            <div class="signature-pad-container">
-                                <canvas id="signature-pad" class="signature-pad"></canvas>
-                                <div class="signature-pad-actions">
-                                    <button type="button" class="btn btn-secondary btn-sm" id="clear-signature">Clear</button>
-                                </div>
-                                <input type="hidden" name="signature" id="signature-input">
+                        <div class="form-card">
+                            <div class="form-card-header">
+                                <h2 class="form-card-title"><i class="fa-solid fa-signature me-2"></i>Completion</h2>
                             </div>
-                        </div>
-
-                        <div class="form-group mb-4">
-                            <label for="Date">Date</label>
-                            <input type="date" class="form-control" id="Date" name="date" value="<?php echo date('Y-m-d'); ?>" required>
+                            <div class="form-card-body">
+                                <div class="form-group mb-4">
+                                    <label for="name">Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="<?php echo $_SESSION['name']; ?>" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label>Completion signature</label>
+                                    <div class="signature-pad-container">
+                                        <canvas id="signature-pad" class="signature-pad"></canvas>
+                                        <div class="signature-pad-actions">
+                                            <button type="button" class="btn btn-secondary btn-sm" id="clear-signature">Clear</button>
+                                        </div>
+                                        <input type="hidden" name="signature" id="signature-input">
+                                    </div>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="Date">Date</label>
+                                    <input type="date" class="form-control" id="Date" name="date" value="<?php echo date('Y-m-d'); ?>" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- 导航按钮 -->
 
-                    <div class="row mt-5">
+                    <div class="row">
                         <div class="col-md-6">
-                            <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">Previous</button>
+                            <button type="button" class="col-2 btn btn-secondary" id="prevBtn" style="display: none;">Previous</button>
                         </div>
                         <div class="col-md-6 text-end" id="nextBtn">
-                            <button type="button" class="btn btn-primary" id="nextBtn">Next</button>
+                            <button type="button" class="col-2 btn btn-primary" id="nextBtn">Next</button>
                         </div>
                         <div class="col-md-6 text-end" id="submitBtn" style="display: none;">
-                            <input type="submit" class="btn btn-primary" value="Submit" >
+                            <input type="submit" class="col-2 btn btn-primary" value="Submit" >
                         </div>
                     </div>
                         
