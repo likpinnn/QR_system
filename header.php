@@ -34,7 +34,7 @@ $role = $row['role'];
                 <span class="navbar-toggler-icon"></span>
             </button>
             <?php endif; ?>
-
+             
             <h1 class="navbar-brand" style="font-size: 30px;">
                 <a href="index.php" class="text-decoration-none text-dark">
                     QR Report
@@ -116,6 +116,7 @@ $role = $row['role'];
         padding: 1rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+   
 }
 </style>
 

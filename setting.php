@@ -30,7 +30,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Report System</title>
 </head>
-<?php include_once 'header.php'; ?>
+<?php 
+    include_once 'header.php'; 
+    include_once 'loading.php';
+?>
 <body>
     <div class="container">
         <div class="row">

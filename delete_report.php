@@ -106,6 +106,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['user'])) {
         echo json_encode(['success' => false, 'message' => '没有找到要删除的记录']);
     }
     // 设置 JSON 头部
-header('Content-Type: application/json');
-}   
+    header('Content-Type: application/json');
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['delete_all'])) {
+    // 首先获取所有PDF文件路径
+    $stmt = $conn->prepare("SELECT pdf FROM pdf");
+    $stmt->execute();
+    $pdf_files = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 删除所有PDF文件
+    foreach ($pdf_files as $pdf) {
+        if (file_exists($pdf['pdf'])) {
+            unlink($pdf['pdf']);
+        }
+    }
+
+    // 删除数据库记录
+    $stmt = $conn->prepare("DELETE FROM pdf");
+    $result = $stmt->execute();
+
+    if ($result) {
+        echo json_encode(['success' => true, 'message' => '所有PDF文件删除成功']);
+    } else {
+        echo json_encode(['success' => false, 'message' => '删除过程中出现错误']);
+    }
+    // 设置 JSON 头部
+    header('Content-Type: application/json');
+}
 ?> 

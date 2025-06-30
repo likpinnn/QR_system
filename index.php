@@ -28,10 +28,6 @@ $bai_data = $bai_result->fetchAll(PDO::FETCH_ASSOC);
 $rev_sql = "SELECT * FROM `rev`";
 $rev_result = $conn->query($rev_sql);
 $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
-
-
-
-
 ?>
 
 <!DOCTYPE html>
@@ -233,12 +229,15 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
         }
     </style>
 </head>
-<?php include_once 'header.php'; ?>
+<?php 
+    include_once 'header.php'; 
+    include_once 'loading.php';
+?>
 <body>
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <p class="fs-2 mt-2"><i class="fa-solid fa-user me-1"></i><i>Hi, <?php echo $_SESSION['username']; ?></i></p>
+                <p class="fs-2 mt-2"><i class="fa-solid fa-user me-1"></i><i>Hi, Welcome <?php echo $_SESSION['username']; ?></i></p>
             </div>
         </div>
 
@@ -542,11 +541,6 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="assets/js/select2.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            initSignaturePad();
-
-        });
 
         // 初始化Select2
         $(document).ready(function() {
@@ -930,8 +924,13 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
                 return;
             }
 
-             // 显示预览
-             const reader = new FileReader();
+            // 创建一个新的FileList对象
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            logoInput.files = dataTransfer.files;
+
+            // 显示预览
+            const reader = new FileReader();
             reader.onload = function(e) {
                 const preview = document.getElementById('logo-preview');
                 preview.innerHTML = `<img src="${e.target.result}" alt="Logo Preview">`;

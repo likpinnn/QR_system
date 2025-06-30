@@ -161,7 +161,10 @@ $pdfs = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     </style>
 </head>
-<?php include_once 'header.php'; ?>
+<?php 
+    include_once 'header.php'; 
+    include_once 'loading.php';
+?>
 <body>
     <div class="container">
         <div class="row">
@@ -186,6 +189,13 @@ $pdfs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <a href="pdf.php" class="search-button" style="background-color: #6c757d; text-decoration: none;">Clear</a>
                         <?php endif; ?>
                     </form>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <button class="btn btn-danger" onclick="deleteAllPDF()">Delete All</button>
+                        <a href="download_all_pdf.php" class="btn btn-success">Download All PDFs</a>
+                    </div>
                 </div>
 
                 <table class="table table-bordered table-striped">
@@ -307,5 +317,24 @@ $pdfs = $stmt->fetchAll(PDO::FETCH_ASSOC);
             xhttp.send();
         }
     }
+
+    function deleteAllPDF() {
+        var confirmText = prompt('Please type "DELETE ALL" to confirm deletion:');
+        if(confirmText === "DELETE ALL") {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    // 删除成功后刷新页面
+                    window.location.reload();
+                }
+            };
+            xhttp.open("GET", "delete_report.php?delete_all=true", true);
+            xhttp.send();
+        } else if(confirmText !== null) {
+            alert('Incorrect text. Please type "DELETE ALL" to confirm deletion.');
+        }
+    }
+
+
 </script>
 </html>
