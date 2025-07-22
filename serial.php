@@ -190,7 +190,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <?php echo $bai['bai_no']; ?>
                                         </td>
                                         <td>
-                                            <button class="btn text-danger fs-5" onclick="del_bai(<?php echo $bai['id']; ?>)">
+                                            <button type="button" class="btn text-danger fs-5" onclick="del_bai(<?php echo $bai['id']; ?>)">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </td>
@@ -198,7 +198,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <?php } ?>
                                     <tr>
                                         <td>
-                                            <input type="text" name="bai_no[]" class="form-control" placeholder="Bai No">
+                                            <input type="text" name="bai_no[]" class="form-control" placeholder="Add New Bai No...">
                                         </td>
                                         <td>
                                             <button class="btn text-success fs-5" type="button" id="add-bai" title="Add Row">
@@ -208,7 +208,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </tr>
                                     <tr id="new_bai" style="display: none;">
                                         <td>
-                                            <input type="text" name="bai_no[]" class="form-control" placeholder="Bai No">
+                                            <input type="text" name="bai_no[]" class="form-control" placeholder="Add New Bai No...">
                                         </td>
                                         <td class="text-center fs-5">
                                             <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">
@@ -286,7 +286,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <?php echo $rev['rev']; ?>
                                         </td>
                                         <td>
-                                            <button class="btn text-danger fs-5" onclick="del_rev(<?php echo $rev['id']; ?>)">
+                                            <button type="button" class="btn text-danger fs-5" onclick="del_rev(<?php echo $rev['id']; ?>)">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </td>
@@ -294,7 +294,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <?php } ?>
                                     <tr>
                                         <td>
-                                            <input type="text" name="rev[]" class="form-control" placeholder="Rev">
+                                            <input type="text" name="rev[]" class="form-control" placeholder="Add New Rev...">
                                         </td>
                                         <td>
                                             <button class="btn text-success fs-5" type="button" id="add-rev" title="Add Row">
@@ -304,7 +304,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </tr>
                                     <tr id="new_rev" style="display: none;">
                                         <td>
-                                            <input type="text" name="rev[]" class="form-control" placeholder="Rev">
+                                            <input type="text" name="rev[]" class="form-control" placeholder="Add New Rev...">
                                         </td>
                                         <td class="text-center fs-5">
                                             <a href="javascript:void(0)" class="link-danger link-underline link-underline-opacity-0 delete-row">

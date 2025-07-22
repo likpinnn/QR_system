@@ -274,9 +274,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                             
                             <?php for($i=1; $i<=$total_b; $i++){?>
                             <div class="card mb-4">
-                                <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class="card-header d-flex justify-content-between align-items-center bg-dark text-white">
                                     <h5 class="mb-0">Step <?php echo $i+$total_a;?></h5>
-                                    <button class="btn btn-outline-primary btn-sm" type="button" id="add-row<?=$i+$total_a?>" title="Add Row">
+                                    <button class="btn btn-light btn-sm" type="button" id="add-row<?=$i+$total_a?>" title="Add Row">
                                         <i class="fa-solid fa-plus"></i> Add Row
                                     </button>
                                 </div>
@@ -395,7 +395,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <!-- 提交按钮 -->
                     <div>
-                        <button class="btn btn-success btn-lg w-100" type="submit" onclick="showSuccessAlert()">
+                        <button class="btn btn-success btn-lg w-100" type="submit">
                             <i class="fa-solid fa-save me-2"></i>Update Form
                         </button>
                     </div>

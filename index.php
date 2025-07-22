@@ -396,7 +396,8 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
                                                 <?php
                                                 $session_dir = 'assets/img/' . $_SESSION['username'] . '.png';
                                                 if (file_exists($session_dir)) {
-                                                    echo '<img src="' . $session_dir . '" alt="Logo Preview" style="max-width: 100%; max-height: 200px;">';
+                                                    $timestamp = time();
+                                                    echo '<img src="' . $session_dir . '?v=' . $timestamp . '" alt="Logo Preview" style="max-width: 100%; max-height: 200px;">';
                                                 } else {
                                                     echo '<div class="text-muted">Preview will appear here</div>';
                                                 }
@@ -660,7 +661,7 @@ $rev_data = $rev_result->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <!-- 在body结束标签前添加jQuery和Select2的JS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/jquery-3.6.0.min.js"></script>
     <script src="assets/js/select2.min.js"></script>
     <script>
 

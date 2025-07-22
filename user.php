@@ -89,6 +89,35 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         header('Location: ' . $redirect_url);
         exit();
     }
+
+    if(isset($_POST['update_role'])){
+        $id = $_POST['id'];
+        $new_role = $_POST['new_role'];
+
+        $name_sql = "SELECT name FROM users WHERE id = '$id'";
+        $name_qry = $conn->query($name_sql);
+        $name_result = $name_qry->fetch(PDO::FETCH_ASSOC);
+        $name = $name_result['name'];
+        
+        $sql = "UPDATE users SET role = '$new_role' WHERE id = '$id'";
+        $conn->query($sql);
+
+        $_SESSION['success'] = $name.'\'s role updated successfully';
+
+        // Maintain current search and pagination state
+        $redirect_url = "user.php";
+        if ($search) {
+            $redirect_url .= "?search=" . urlencode($search);
+            if ($page > 1) {
+                $redirect_url .= "&page=" . $page;
+            }
+        } elseif ($page > 1) {
+            $redirect_url .= "?page=" . $page;
+        }
+        
+        header('Location: ' . $redirect_url);
+        exit();
+    }
 }
 
 ?>
@@ -183,14 +212,19 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                 <th><?php echo $user['username']; ?></th>
                                 <td><?php echo $user['name']; ?></td>
                                 <td>
-                                    <?php 
-                                    $roleClass = $user['role'] === 'admin' ? 'badge bg-danger' : 'badge bg-success';
-                                    $roleIcon = $user['role'] === 'admin' ? 'fa-user-shield' : 'fa-user';
-                                    ?>
-                                    <span class="<?php echo $roleClass; ?>" style="font-size: 13px;">
-                                        <i class="fa-solid <?php echo $roleIcon; ?> me-1"></i>
-                                        <?php echo ucfirst($user['role']); ?>
-                                    </span>
+                                    <div class="d-flex align-items-center">
+                                        <?php 
+                                        $roleClass = $user['role'] === 'admin' ? 'badge bg-danger' : 'badge bg-success';
+                                        $roleIcon = $user['role'] === 'admin' ? 'fa-user-shield' : 'fa-user';
+                                        ?>
+                                        <span class="<?php echo $roleClass; ?> me-2" style="font-size: 13px;">
+                                            <i class="fa-solid <?php echo $roleIcon; ?> me-1"></i>
+                                            <?php echo ucfirst($user['role']); ?>
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="editRole(<?php echo $user['id']; ?>, '<?php echo $user['role']; ?>', '<?php echo $user['name']; ?>')">
+                                            <i class="fa-solid fa-edit"></i>
+                                        </button>
+                                    </div>
                                 </td>
                                 <td class="p-0">
                                     <form action="" method="post">
@@ -310,6 +344,36 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             };
             xhttp.open("GET", "delete_report.php?user=" + id, true);
             xhttp.send();
+        }
+    }
+
+    function editRole(id, currentRole, name) {
+        var newRole = prompt('Change role for ' + name + ' (current: ' + currentRole + ')\nEnter "admin" or "user":', currentRole);
+        if (newRole && (newRole === 'admin' || newRole === 'user')) {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '';
+            
+            var idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'id';
+            idInput.value = id;
+            
+            var roleInput = document.createElement('input');
+            roleInput.type = 'hidden';
+            roleInput.name = 'new_role';
+            roleInput.value = newRole;
+            
+            var submitInput = document.createElement('input');
+            submitInput.type = 'hidden';
+            submitInput.name = 'update_role';
+            submitInput.value = '1';
+            
+            form.appendChild(idInput);
+            form.appendChild(roleInput);
+            form.appendChild(submitInput);
+            document.body.appendChild(form);
+            form.submit();
         }
     }
 </script>

@@ -267,12 +267,12 @@ $date = $_POST['date'];
                                     <input type="file" id="logoInput" accept="image/*" style="display: none;">
                                 </td>
                                 <td class="col-md-6">
-                                    <input type="text" name="report-name1" class="form-control text-center p-0 m-0" style="font-weight:bold; font-size: 18px; border: 0px;" value="<?=$report_name1?>">
-                                    <input type="text" name="report-name2" class="form-control text-center p-0 m-0" style="font-weight:bold; font-size: 18px; border: 0px;" value="<?=$report_name2?>">
+                                    <input type="text" name="report-name1" class="form-control text-center p-0 m-0" style="font-weight:bold; font-size: 15px; border: 0px;" value="<?=$report_name1?>">
+                                    <input type="text" name="report-name2" class="form-control text-center p-0 m-0" style="font-weight:bold; font-size: 15px; border: 0px;" value="<?=$report_name2?>">
                                 </td>
                                 <td class="col-md-3">
-                                    <input type="text" name="bai_no" id="bai_no" value="<?=$bai_no?>" class="form-control w-100 text-center p-0 m-0" style="font-weight: bold; font-size: 18px; border: 0px" onchange="updateBaiNo()">  
-                                    <input type="text" name="rev" id="rev" value="<?=$rev?>" class="form-control w-100 text-center p-0 m-0" style="font-weight: bold; font-size: 18px; border: 0px" onchange="updateRev()">  
+                                    <input type="text" name="bai_no" id="bai_no" value="<?=$bai_no?>" class="form-control w-100 text-center p-0 m-0" style="font-weight: bold; font-size: 15px; border: 0px" onchange="updateBaiNo()">  
+                                    <input type="text" name="rev" id="rev" value="<?=$rev?>" class="form-control w-100 text-center p-0 m-0" style="font-weight: bold; font-size: 15px; border: 0px" onchange="updateRev()">  
                                 </td>
                             </tr>              
                         </table>
@@ -557,35 +557,40 @@ $date = $_POST['date'];
                                         <th class="bg-primary text-white" style="width: 10%;">Pass/Fail</th>
                                     </tr>
                                     <?php
-                                    $y = 0;
-                                    foreach($final as $step){
-                                        $y++;
-                                        $rowspan_count = count($step);
-                                        $first_row = true;
-                                        foreach($step as $s){
-                                            $report_sql = "SELECT * FROM `report` WHERE `step` = '$y' AND `type` = 'b'";
-                                            $report_result = $conn->query($report_sql);
-                                            $report_data = $report_result->fetchAll(PDO::FETCH_ASSOC);
-                                            foreach($report_data as $index => $report){
-                                                $action = $report['action'];
-                                                $spec = $report['spec'];
-                                                $result = $s;
-                                            }
-                                            ?>
-                                            <tr>
-                                                <td class="text-center"><?=$y+$total_a?></td>
-                                                <td><?=$action?></td>
-                                                <td class="text-center">
-                                                    <select class="form-control pass-fail-select border-0 bg-transparent" onchange="updatePassFailColor(this)" style="border: none; text-align: center; font-size: 13px;">
-                                                        <option value="Pass" <?php echo ($result == 'Pass') ? 'selected' : ''; ?>>Pass</option>
-                                                        <option value="Fail" <?php echo ($result == 'Fail') ? 'selected' : ''; ?>>Fail</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                            <?php
+                                    // 获取所有step（type='b'），按step分组
+                                    $step_b_sql = "SELECT step FROM `report` WHERE `type` = 'b' GROUP BY step ORDER BY step ASC";
+                                    $step_b_result = $conn->query($step_b_sql);
+                                    $step_b_data = $step_b_result->fetchAll(PDO::FETCH_ASSOC);
+                                    $step_index = 0;
+                                    foreach($step_b_data as $step_row){
+                                        $step_index++;
+                                        $step_num = $step_row['step'];
+                                        // 获取该step下所有action
+                                        $action_sql = "SELECT * FROM `report` WHERE `type` = 'b' AND `step` = '$step_num'";
+                                        $action_result = $conn->query($action_sql);
+                                        $action_data = $action_result->fetchAll(PDO::FETCH_ASSOC);
+                                        $rowspan = count($action_data);
+                                        // 获取用户输入的结果
+                                        $user_results = isset($final[$step_index - 1]) ? $final[$step_index - 1] : [];
+                                        foreach($action_data as $i => $action_row){
+                                            $action = $action_row['action'];
+                                            $result = isset($user_results[$i]) ? $user_results[$i] : '';
+                                    ?>
+                                    <tr>
+                                        <?php if($i == 0){ ?>
+                                            <td class="text-center" rowspan="<?=$rowspan?>"><b><?=$step_num + $total_a?>.</b></td>
+                                        <?php } ?>
+                                        <td><?=$action?></td>
+                                        <td class="text-center">
+                                            <select class="form-control pass-fail-select border-0 bg-transparent" onchange="updatePassFailColor(this)" style="border: none; text-align: center; font-size: 13px;">
+                                                <option value="Pass" <?php echo ($result == 'Pass') ? 'selected' : ''; ?>>Pass</option>
+                                                <option value="Fail" <?php echo ($result == 'Fail') ? 'selected' : ''; ?>>Fail</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <?php
                                         }
                                     }
-
                                     ?>
                                 </table>
                             </div>
@@ -593,7 +598,7 @@ $date = $_POST['date'];
                     </div>
 
                     <!-- Signature Section -->
-                    <div class="col-md-12 content-section" style="margin-top: 50px;">
+                    <div class="col-md-12 content-section mt-4">
                         <div class="row">
                             <div class="col-md-12 px-5">
                                 <div class="row">
@@ -619,7 +624,7 @@ $date = $_POST['date'];
                     </div>
 
                     <!-- Revision History Section -->
-                    <div class="col-md-12 content-section" style="margin-top: 50px;">
+                    <div class="col-md-12 content-section mt-4">
                         <div class="row">
                             <div class="col-md-12">
                                 <h5 class="text-primary">Revision History</h5>

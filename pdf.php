@@ -234,13 +234,14 @@ $pdfs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                     </form>
                 </div>
-
+                <?php if($role != 'user'){?>
                 <div class="row mb-2">
                     <div class="col-md-12">
                         <button class="btn btn-danger" onclick="deleteAllPDF()">Delete All</button>
-                        <a href="download_all_pdf.php" class="btn btn-success">Download All PDFs</a>
+                        <a href="download_all_pdf.php?<?php echo http_build_query($_GET); ?>" class="btn btn-success">Download All PDFs</a>
                     </div>
                 </div>
+                <?php }?>
 
                 <table class="table table-bordered table-striped shadow">
                     <tr class="table-dark">
