@@ -115,7 +115,7 @@ $role = $row['role'];
 }
 
 /* 菜单项样式 */
-.menu-item {git init
+.menu-item {
     position: relative;
     padding: 0.75rem 1rem !important;
     border-radius: 8px;

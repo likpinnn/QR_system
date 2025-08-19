@@ -357,7 +357,7 @@ $date = $_POST['date'];
                     <div class="col-md-12 content-section">
                         <div class="row">
                             <div class="col-md-12">
-                                <h5 class="text-primary">Contunuity Check</h5>
+                                <h5 class="text-primary">Continuity Check</h5>
                             </div>
                             <div class="col-md-12">
                                 <table>
