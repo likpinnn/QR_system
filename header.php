@@ -24,7 +24,7 @@ $role = $row['role'];
 
 <script src="assets/js/bootstrap.bundle.min.js"></script>
 
-<header class="bg-dark">
+<header class="bg-dark fixed-top">
     <nav class="navbar navbar-expand-lg">
         <div class="container">
 
